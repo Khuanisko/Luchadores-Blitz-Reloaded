@@ -7,8 +7,12 @@ signal unit_sold(unit_data: UnitData, source_slot: Control)
 
 const UNIT_SLOT_SCENE = preload("res://scenes/shop/unit_slot.tscn")
 
+const MAX_TEAM_SIZE: int = 5
 var is_open: bool = false
 var team_units: Array[UnitData] = []
+
+func is_full() -> bool:
+	return team_units.size() >= MAX_TEAM_SIZE
 
 @onready var board: Control = $Board
 @onready var rope_button: TextureButton = $RopeButton

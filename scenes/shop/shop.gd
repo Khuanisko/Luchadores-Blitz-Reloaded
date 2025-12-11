@@ -47,6 +47,13 @@ func _create_sample_units() -> void:
 		unit.unit_name = char_name.capitalize()
 		unit.unit_texture = texture
 		unit.unit_color = Color.WHITE  # Fallback color
+		
+		# Load stats from database
+		var stats = CharacterStats.get_stats(char_name)
+		unit.hp = stats.hp
+		unit.attack = stats.attack
+		unit.cost = stats.cost
+		
 		available_units.append(unit)
 
 
@@ -70,6 +77,11 @@ func _on_unit_purchased(unit_data: UnitData, source_slot: Control) -> void:
 	# Check if player can afford
 	if gold < UNIT_COST:
 		print("Not enough gold!")
+		return
+		
+	# Check if team is full
+	if team_board and team_board.is_full():
+		print("Team is full!")
 		return
 	
 	# Spend gold

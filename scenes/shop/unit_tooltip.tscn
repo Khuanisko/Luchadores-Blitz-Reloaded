@@ -1,0 +1,120 @@
+[gd_scene load_steps=5 format=3 uid="uid://b6ceckca41jj6"]
+
+[ext_resource type="Script" uid="uid://bogpsgqs2pguh" path="res://scenes/shop/unit_tooltip.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://drkie2pupjjae" path="res://assets/sprites/shop/metka.png" id="2_metka"]
+[ext_resource type="Texture2D" uid="uid://d1ny1p562cb36" path="res://assets/sprites/shop/heart.png" id="3_heart"]
+[ext_resource type="Texture2D" uid="uid://bw355ur3a727e" path="res://assets/sprites/shop/fist.png" id="4_fist"]
+
+[node name="UnitTooltip" type="Control"]
+z_index = 100
+layout_mode = 3
+anchors_preset = 0
+offset_right = 200.0
+offset_bottom = 120.0
+script = ExtResource("1_script")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_metka")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.35
+anchor_top = 0.2
+anchor_right = 0.95
+anchor_bottom = 0.4
+offset_left = 9.0
+offset_top = -4.000002
+offset_right = 9.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = -0.174533
+pivot_offset = Vector2(60, 10)
+theme_override_colors/font_color = Color(0.2, 0.15, 0.1, 1)
+theme_override_font_sizes/font_size = 16
+text = "Unit Name"
+vertical_alignment = 1
+
+[node name="HeartIcon" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 81.0
+offset_top = 45.000004
+offset_right = 121.59521
+offset_bottom = 87.076385
+rotation = -0.174533
+pivot_offset = Vector2(16, 16)
+texture = ExtResource("3_heart")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="HeartIcon"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="FistIcon" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 107.349365
+offset_top = 28.216846
+offset_right = 187.14857
+offset_bottom = 93.30907
+rotation = -0.174533
+pivot_offset = Vector2(16, 16)
+texture = ExtResource("4_fist")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="FistIcon"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CostLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.75
+anchor_top = 0.65
+anchor_right = 0.95
+anchor_bottom = 0.85
+offset_left = 1.5258789e-05
+offset_top = -8.0
+offset_right = 1.5258789e-05
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = -0.174533
+pivot_offset = Vector2(10, 10)
+theme_override_colors/font_color = Color(0.8, 0.6, 0.1, 1)
+theme_override_font_sizes/font_size = 18
+text = "3"
+horizontal_alignment = 1
+vertical_alignment = 1

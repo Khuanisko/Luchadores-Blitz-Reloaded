@@ -6,8 +6,11 @@ extends Control
 signal purchased(unit_data: UnitData)
 signal swap_requested(from_slot: Control, to_slot: Control)
 
+const TOOLTIP_SCENE = preload("res://scenes/shop/unit_tooltip.tscn")
+
 var unit_data: UnitData = null
 var is_in_shop: bool = true  # Only shop units can be dragged
+var tooltip_instance: Control = null
 
 @onready var background: ColorRect = $Background
 @onready var character_texture: TextureRect = $CharacterTexture
@@ -23,6 +26,10 @@ func _ready() -> void:
 		character_texture.mouse_filter = Control.MOUSE_FILTER_PASS
 	if name_label:
 		name_label.mouse_filter = Control.MOUSE_FILTER_PASS
+	
+	# Connect hover signals for tooltip
+	mouse_entered.connect(_on_mouse_entered)
+	mouse_exited.connect(_on_mouse_exited)
 
 
 func setup(data: UnitData) -> void:
@@ -132,3 +139,32 @@ func _notification(what: int) -> void:
 func _reset_visual() -> void:
 	if background:
 		background.modulate = Color.WHITE
+
+
+func _on_mouse_entered() -> void:
+	if unit_data == null:
+		return
+	
+	# Create tooltip instance if not exists
+	if tooltip_instance == null:
+		tooltip_instance = TOOLTIP_SCENE.instantiate()
+		# Add to root so it's on top of everything
+		get_tree().root.add_child(tooltip_instance)
+	
+	# Update tooltip content
+	tooltip_instance.show_unit(unit_data)
+	
+	# Position tooltip to the right of the unit slot but with significant overlap
+	var slot_rect = get_global_rect()
+	tooltip_instance.global_position = Vector2(slot_rect.end.x - 50, slot_rect.position.y + 10)
+
+
+func _on_mouse_exited() -> void:
+	if tooltip_instance:
+		tooltip_instance.hide_tooltip()
+
+
+func _exit_tree() -> void:
+	# Clean up tooltip when slot is removed
+	if tooltip_instance and is_instance_valid(tooltip_instance):
+		tooltip_instance.queue_free()
