@@ -1,0 +1,84 @@
+[gd_scene load_steps=5 format=3 uid="uid://na87q1r3rhok"]
+
+[ext_resource type="Script" uid="uid://4058w1ubhkpj" path="res://scenes/shop/team_board.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://di82hc0bhc3hq" path="res://assets/sprites/shop/rope.png" id="2_rope"]
+[ext_resource type="Texture2D" uid="uid://b8ncmv1aor364" path="res://assets/sprites/shop/team_board.png" id="3_board"]
+[ext_resource type="PackedScene" path="res://scenes/shop/sell_zone.tscn" id="4_sellzone"]
+
+[node name="TeamBoard" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_script")
+
+[node name="RopeButton" type="TextureButton" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -80.0
+offset_top = -30.0
+offset_right = 80.0
+offset_bottom = 200.0
+grow_horizontal = 2
+texture_normal = ExtResource("2_rope")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Board" type="Control" parent="."]
+layout_mode = 1
+anchor_left = 0.1
+anchor_right = 0.9
+anchor_bottom = 0.7
+offset_left = -6.2000046
+offset_top = 30.0
+offset_bottom = -12.600006
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BoardTexture" type="TextureRect" parent="Board"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.13700001
+anchor_top = -0.069000006
+anchor_right = 0.92700005
+anchor_bottom = 0.46500003
+offset_left = -69.1086
+offset_top = -287.641
+offset_right = 70.92944
+offset_bottom = 281.88498
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_board")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TeamContainer" type="HBoxContainer" parent="Board"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.134
+anchor_top = -0.058000002
+anchor_right = 0.753
+anchor_bottom = 0.41400003
+offset_left = -0.3251953
+offset_top = -0.16200256
+offset_right = 0.36663818
+offset_bottom = -0.15400696
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 4
+
+[node name="SellZone" parent="Board" instance=ExtResource("4_sellzone")]
+anchors_preset = -1
+anchor_left = 0.75200003
+anchor_top = -0.063
+anchor_right = 0.92300004
+anchor_bottom = 0.437
+offset_left = 0.2944336
+offset_top = -0.107004166
+offset_right = -0.13140869
+offset_bottom = 0.1929779
