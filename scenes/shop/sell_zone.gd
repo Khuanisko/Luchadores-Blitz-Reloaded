@@ -47,4 +47,4 @@ func _notification(what: int) -> void:
 
 func _reset_visual() -> void:
 	if background:
-		background.color = Color(0.5, 0.2, 0.2, 1)  # Dark red base color
+		background.color = Color(0, 0, 0, 0)  # Transparent base
