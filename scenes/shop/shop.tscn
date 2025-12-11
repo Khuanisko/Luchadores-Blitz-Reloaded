@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://1hf3up5viqj6" path="res://scenes/shop/shop.gd" id="1_main"]
 [ext_resource type="Texture2D" uid="uid://cejglfmmex0wm" path="res://assets/sprites/shop/shop.jpg" id="2_shopbg"]
 [ext_resource type="PackedScene" path="res://scenes/shop/shopkeeper.tscn" id="3_shopkeeper"]
-[ext_resource type="PackedScene" path="res://scenes/shop/sell_zone.tscn" id="4_sellzone"]
+[ext_resource type="PackedScene" uid="uid://cteamboard_scene" path="res://scenes/shop/team_board.tscn" id="4_teamboard"]
 
 [node name="Shop" type="Control"]
 layout_mode = 3
@@ -49,9 +49,9 @@ anchor_left = 0.08
 anchor_top = 0.35
 anchor_right = 0.32
 anchor_bottom = 0.75
-offset_left = -28.159996
-offset_top = -6.800003
-offset_right = 8.360016
+offset_left = -28.0
+offset_top = -7.0
+offset_right = 8.0
 offset_bottom = 3.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -67,34 +67,6 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 4
 
-[node name="TeamContainer" type="HBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.4
-anchor_top = 0.42
-anchor_right = 0.92
-anchor_bottom = 0.62
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 2
-
-[node name="TeamLabel" type="Label" parent="."]
-visible = false
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.44
-anchor_top = 0.68
-anchor_right = 0.92
-anchor_bottom = 0.72
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 14
-text = "Twoja Drużyna (0)"
-horizontal_alignment = 1
-
 [node name="RerollButton" type="Button" parent="."]
 layout_mode = 1
 anchors_preset = -1
@@ -102,26 +74,20 @@ anchor_left = 0.08
 anchor_top = 0.78
 anchor_right = 0.32
 anchor_bottom = 0.88
-offset_left = -89.159996
-offset_top = 76.56003
-offset_right = -89.16
-offset_bottom = 76.56006
+offset_left = -89.0
+offset_top = 77.0
+offset_right = -89.0
+offset_bottom = 77.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 16
 text = "🎲 REROLL (-1)"
 
-[node name="SellZone" parent="." instance=ExtResource("4_sellzone")]
+[node name="TeamBoard" parent="." instance=ExtResource("4_teamboard")]
 layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.549
-anchor_top = 0.102000006
-anchor_right = 0.549
-anchor_bottom = 0.102000006
-offset_left = -60.447998
-offset_top = -60.096
-offset_right = 59.552002
-offset_bottom = 59.904
-grow_horizontal = 0
-grow_vertical = 0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2

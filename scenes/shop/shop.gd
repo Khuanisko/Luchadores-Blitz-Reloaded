@@ -14,15 +14,12 @@ var gold: int = STARTING_GOLD
 
 # Sample units for the shop
 var available_units: Array[UnitData] = []
-var team_units: Array[UnitData] = []
 
 @onready var shop_container: HBoxContainer = $ShopContainer
 @onready var shopkeeper: Control = $Shopkeeper
 @onready var reroll_button: Button = $RerollButton
-@onready var sell_zone: Control = $SellZone
 @onready var gold_label: Label = $GoldLabel
-@onready var team_container: HBoxContainer = $TeamContainer
-@onready var team_label: Label = $TeamLabel
+@onready var team_board: Control = $TeamBoard
 
 
 func _ready() -> void:
@@ -65,8 +62,8 @@ func _connect_signals() -> void:
 		shopkeeper.unit_purchased.connect(_on_unit_purchased)
 	if reroll_button:
 		reroll_button.pressed.connect(_on_reroll_pressed)
-	if sell_zone:
-		sell_zone.unit_sold.connect(_on_unit_sold)
+	if team_board:
+		team_board.unit_sold.connect(_on_unit_sold)
 
 
 func _on_unit_purchased(unit_data: UnitData, source_slot: Control) -> void:
@@ -79,53 +76,15 @@ func _on_unit_purchased(unit_data: UnitData, source_slot: Control) -> void:
 	gold -= UNIT_COST
 	_update_gold_display()
 	
-	# Add unit to team
-	team_units.append(unit_data)
+	# Add unit to team board
+	if team_board:
+		team_board.add_unit(unit_data)
 	
 	# Remove the slot from shop
 	if source_slot:
 		source_slot.remove_from_shop()
 	
-	# Update team display
-	_update_team_display()
-	
 	print("Purchased: ", unit_data.unit_name, " for ", UNIT_COST, " gold")
-
-
-func _update_team_display() -> void:
-	# Clear existing team display
-	for child in team_container.get_children():
-		child.queue_free()
-	
-	# Add all team units
-	for i in range(team_units.size()):
-		var unit_data = team_units[i]
-		var team_slot = UNIT_SLOT_SCENE.instantiate()
-		team_container.add_child(team_slot)
-		team_slot.setup(unit_data)
-		# Mark as team unit (can drag for swapping, but not for buying)
-		team_slot.is_in_shop = false
-		# Connect swap signal
-		team_slot.swap_requested.connect(_on_swap_requested)
-	
-	# Update label
-	team_label.text = "Twoja Drużyna (%d)" % team_units.size()
-
-
-func _on_swap_requested(from_slot: Control, to_slot: Control) -> void:
-	# Find indices of both slots
-	var from_index = from_slot.get_index()
-	var to_index = to_slot.get_index()
-	
-	if from_index >= 0 and to_index >= 0 and from_index < team_units.size() and to_index < team_units.size():
-		# Swap in data array
-		var temp = team_units[from_index]
-		team_units[from_index] = team_units[to_index]
-		team_units[to_index] = temp
-		
-		# Update display
-		_update_team_display()
-		print("Swapped positions: ", from_index, " <-> ", to_index)
 
 
 func _on_reroll_pressed() -> void:
@@ -163,17 +122,8 @@ func _update_gold_display() -> void:
 		reroll_button.disabled = gold < REROLL_COST
 
 
-func _on_unit_sold(unit_data: UnitData, source_slot: Control) -> void:
-	# Find and remove unit from team
-	var slot_index = source_slot.get_index()
-	if slot_index >= 0 and slot_index < team_units.size():
-		team_units.remove_at(slot_index)
-		
-		# Add gold
-		gold += SELL_VALUE
-		_update_gold_display()
-		
-		# Update team display
-		_update_team_display()
-		
-		print("Sold: ", unit_data.unit_name, " for ", SELL_VALUE, " gold")
+func _on_unit_sold(unit_data: UnitData, _source_slot: Control) -> void:
+	# Add gold
+	gold += SELL_VALUE
+	_update_gold_display()
+	print("Sold: ", unit_data.unit_name, " for ", SELL_VALUE, " gold")
