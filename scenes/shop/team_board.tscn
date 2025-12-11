@@ -31,54 +31,53 @@ stretch_mode = 5
 
 [node name="Board" type="Control" parent="."]
 layout_mode = 1
-anchor_left = 0.1
-anchor_right = 0.9
+anchor_left = 0.05
+anchor_right = 0.95
 anchor_bottom = 0.7
-offset_left = -6.2000046
+offset_left = 0.0
 offset_top = 30.0
-offset_bottom = -12.600006
+offset_right = 0.0
+offset_bottom = -12.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="BoardTexture" type="TextureRect" parent="Board"]
 layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.13700001
-anchor_top = -0.069000006
-anchor_right = 0.92700005
-anchor_bottom = 0.46500003
-offset_left = -69.1086
-offset_top = -287.641
-offset_right = 70.92944
-offset_bottom = 281.88498
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("3_board")
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 0
 
 [node name="TeamContainer" type="HBoxContainer" parent="Board"]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.134
-anchor_top = -0.058000002
-anchor_right = 0.753
-anchor_bottom = 0.41400003
-offset_left = -0.3251953
-offset_top = -0.16200256
-offset_right = 0.36663818
-offset_bottom = -0.15400696
+anchor_left = 0.05
+anchor_top = 0.15
+anchor_right = 0.8
+anchor_bottom = 0.55
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = -5
 
 [node name="SellZone" parent="Board" instance=ExtResource("4_sellzone")]
 anchors_preset = -1
-anchor_left = 0.75200003
-anchor_top = -0.063
-anchor_right = 0.92300004
-anchor_bottom = 0.437
-offset_left = 0.2944336
-offset_top = -0.107004166
-offset_right = -0.13140869
-offset_bottom = 0.1929779
+anchor_left = 0.81
+anchor_top = 0.25
+anchor_right = 0.92
+anchor_bottom = 0.55
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0

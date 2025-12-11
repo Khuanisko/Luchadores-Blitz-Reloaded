@@ -6,7 +6,7 @@ extends Control
 const UNIT_SLOT_SCENE = preload("res://scenes/shop/unit_slot.tscn")
 
 # Currency
-const STARTING_GOLD: int = 10
+const STARTING_GOLD: int = 1000
 const UNIT_COST: int = 3
 const REROLL_COST: int = 1
 const SELL_VALUE: int = 1
