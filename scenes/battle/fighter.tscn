@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://fighter_scene"]
+
+[ext_resource type="Script" path="res://scenes/battle/fighter.gd" id="1_fighter"]
+
+[node name="Fighter" type="Node2D"]
+script = ExtResource("1_fighter")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(1.5, 1.5)

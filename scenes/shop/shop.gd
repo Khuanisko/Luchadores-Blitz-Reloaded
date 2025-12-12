@@ -18,6 +18,7 @@ var available_units: Array[UnitData] = []
 @onready var shop_container: HBoxContainer = $ShopContainer
 @onready var shopkeeper: Control = $Shopkeeper
 @onready var reroll_button: Button = $RerollButton
+@onready var fight_button: Button = $FightButton
 @onready var gold_label: Label = $GoldLabel
 @onready var team_board: Control = $TeamBoard
 
@@ -25,8 +26,20 @@ var available_units: Array[UnitData] = []
 func _ready() -> void:
 	_create_sample_units()
 	_populate_shop()
+	_restore_team()
 	_connect_signals()
 	_update_gold_display()
+
+
+func _restore_team() -> void:
+	if GameData.player_team.is_empty():
+		return
+		
+	if team_board:
+		for unit_data in GameData.player_team:
+			# Fully heal unit before adding back to board
+			unit_data.hp = unit_data.max_hp
+			team_board.add_unit(unit_data)
 
 
 func _create_sample_units() -> void:
@@ -51,6 +64,7 @@ func _create_sample_units() -> void:
 		# Load stats from database
 		var stats = CharacterStats.get_stats(char_name)
 		unit.hp = stats.hp
+		unit.max_hp = stats.hp
 		unit.attack = stats.attack
 		unit.cost = stats.cost
 		
@@ -69,6 +83,8 @@ func _connect_signals() -> void:
 		shopkeeper.unit_purchased.connect(_on_unit_purchased)
 	if reroll_button:
 		reroll_button.pressed.connect(_on_reroll_pressed)
+	if fight_button:
+		fight_button.pressed.connect(_on_fight_pressed)
 	if team_board:
 		team_board.unit_sold.connect(_on_unit_sold)
 
@@ -139,3 +155,13 @@ func _on_unit_sold(unit_data: UnitData, _source_slot: Control) -> void:
 	gold += SELL_VALUE
 	_update_gold_display()
 	print("Sold: ", unit_data.unit_name, " for ", SELL_VALUE, " gold")
+
+
+func _on_fight_pressed() -> void:
+	if team_board:
+		GameData.player_team = team_board.team_units.duplicate()
+	
+	GameData.generate_enemy_team()
+	
+	# Transition to battle arena
+	get_tree().change_scene_to_file("res://scenes/battle/battle_arena.tscn")

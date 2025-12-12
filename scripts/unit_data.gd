@@ -8,6 +8,7 @@ extends Resource
 @export var unit_color: Color = Color.RED
 @export var unit_texture: Texture2D = null
 @export var hp: int = 1
+@export var max_hp: int = 1
 @export var attack: int = 1
 @export var cost: int = 3
 
@@ -27,7 +28,8 @@ func level_up() -> void:
 	xp -= max_xp
 	level += 1
 	# Increase stats on level up (doubling stats)
-	hp *= 2
+	max_hp *= 2
+	hp = max_hp # Heal on level up
 	attack *= 2
 	# Cap at level 2 - prevent further xp gain happens in add_xp
 
