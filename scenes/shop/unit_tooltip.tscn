@@ -1,156 +1,152 @@
 [gd_scene load_steps=5 format=3 uid="uid://b6ceckca41jj6"]
 
 [ext_resource type="Script" uid="uid://bogpsgqs2pguh" path="res://scenes/shop/unit_tooltip.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://drkie2pupjjae" path="res://assets/sprites/shop/metka.png" id="2_metka"]
 [ext_resource type="Texture2D" uid="uid://d1ny1p562cb36" path="res://assets/sprites/shop/heart.png" id="3_heart"]
 [ext_resource type="Texture2D" uid="uid://bw355ur3a727e" path="res://assets/sprites/shop/fist.png" id="4_fist"]
 
-[node name="UnitTooltip" type="Control"]
+[node name="UnitTooltip" type="PanelContainer"]
 z_index = 100
-layout_mode = 3
-anchors_preset = 0
-offset_right = 200.0
-offset_bottom = 120.0
+offset_right = 250.0
+offset_bottom = 200.0
 script = ExtResource("1_script")
 
-[node name="Background" type="TextureRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("2_metka")
-expand_mode = 1
-stretch_mode = 5
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
 
-[node name="NameLabel" type="Label" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.35
-anchor_top = 0.2
-anchor_right = 0.95
-anchor_bottom = 0.4
-offset_left = 9.0
-offset_top = -4.000002
-offset_right = 9.0
-offset_bottom = -4.0
-grow_horizontal = 2
-grow_vertical = 2
-rotation = -0.174533
-pivot_offset = Vector2(60, 10)
-theme_override_colors/font_color = Color(0.2, 0.15, 0.1, 1)
-theme_override_font_sizes/font_size = 16
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 0
+
+[node name="NameLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+theme_override_font_sizes/font_size = 20
 text = "Unit Name"
-vertical_alignment = 1
+uppercase = true
 
-[node name="HeartIcon" type="TextureRect" parent="."]
-layout_mode = 0
-offset_left = 81.0
-offset_top = 45.000004
-offset_right = 121.59521
-offset_bottom = 87.076385
-rotation = -0.174533
-pivot_offset = Vector2(16, 16)
-texture = ExtResource("3_heart")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="Label" type="Label" parent="HeartIcon"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 3
+[node name="TierLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 14
-text = "1"
-horizontal_alignment = 1
-vertical_alignment = 1
+text = "Tier 1"
 
-[node name="FistIcon" type="TextureRect" parent="."]
-layout_mode = 0
-offset_left = 107.349365
-offset_top = 28.216846
-offset_right = 187.14857
-offset_bottom = 93.30907
-rotation = -0.174533
-pivot_offset = Vector2(16, 16)
+[node name="CostLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.843137, 0, 1)
+theme_override_font_sizes/font_size = 18
+text = "$3"
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="StatsRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="AttackContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/StatsRow"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="MarginContainer/VBoxContainer/StatsRow/AttackContainer"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
 texture = ExtResource("4_fist")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Label" type="Label" parent="FistIcon"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 14
-text = "1"
-horizontal_alignment = 1
-vertical_alignment = 1
+[node name="Value" type="Label" parent="MarginContainer/VBoxContainer/StatsRow/AttackContainer"]
+layout_mode = 2
+text = "5"
 
-[node name="CostLabel" type="Label" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.75
-anchor_top = 0.65
-anchor_right = 0.95
-anchor_bottom = 0.85
-offset_left = 1.5258789e-05
-offset_top = -8.0
-offset_right = 1.5258789e-05
-offset_bottom = -6.0
-grow_horizontal = 2
-grow_vertical = 2
-rotation = -0.174533
-pivot_offset = Vector2(10, 10)
-theme_override_colors/font_color = Color(0.8, 0.6, 0.1, 1)
-theme_override_font_sizes/font_size = 18
-text = "3"
-horizontal_alignment = 1
-vertical_alignment = 1
+[node name="HPContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/StatsRow"]
+layout_mode = 2
 
-[node name="LevelLabel" type="Label" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.1
-anchor_top = 0.6
-anchor_right = 0.4
-anchor_bottom = 0.8
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 0.0
-offset_bottom = 0.0
-rotation = -0.174533
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 14
-text = "Lv 1"
-horizontal_alignment = 1
-vertical_alignment = 1
+[node name="Icon" type="TextureRect" parent="MarginContainer/VBoxContainer/StatsRow/HPContainer"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+texture = ExtResource("3_heart")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="XPLabel" type="Label" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.1
-anchor_top = 0.75
-anchor_right = 0.4
-anchor_bottom = 0.95
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 0.0
-offset_bottom = 0.0
-rotation = -0.174533
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+[node name="Value" type="Label" parent="MarginContainer/VBoxContainer/StatsRow/HPContainer"]
+layout_mode = 2
+text = "10"
+
+[node name="LevelInfo" type="VBoxContainer" parent="MarginContainer/VBoxContainer/StatsRow"]
+layout_mode = 2
+size_flags_horizontal = 10
+alignment = 1
+
+[node name="LevelLabel" type="Label" parent="MarginContainer/VBoxContainer/StatsRow/LevelInfo"]
+layout_mode = 2
 theme_override_font_sizes/font_size = 12
+text = "Lv 1"
+horizontal_alignment = 2
+
+[node name="XPLabel" type="Label" parent="MarginContainer/VBoxContainer/StatsRow/LevelInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 10
 text = "XP: 0/2"
-horizontal_alignment = 1
-vertical_alignment = 1
+horizontal_alignment = 2
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="TagsRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ClassLabel" type="Label" parent="MarginContainer/VBoxContainer/TagsRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "Brawler"
+
+[node name="VSeparator" type="VSeparator" parent="MarginContainer/VBoxContainer/TagsRow"]
+layout_mode = 2
+
+[node name="FactionLabel" type="Label" parent="MarginContainer/VBoxContainer/TagsRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.6, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "Los Tecnicos"
+
+[node name="VSeparator2" type="VSeparator" parent="MarginContainer/VBoxContainer/TagsRow"]
+layout_mode = 2
+
+[node name="HeelFaceLabel" type="Label" parent="MarginContainer/VBoxContainer/TagsRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.6, 0.6, 1)
+theme_override_font_sizes/font_size = 12
+text = "Face"
+
+[node name="HSeparator3" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="AbilitySection" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="AbilityName" type="Label" parent="MarginContainer/VBoxContainer/AbilitySection"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
+theme_override_font_sizes/font_size = 14
+text = "Ability Name"
+
+[node name="AbilityDesc" type="RichTextLabel" parent="MarginContainer/VBoxContainer/AbilitySection"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+theme_override_colors/default_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_font_sizes/normal_font_size = 12
+bbcode_enabled = true
+text = "Ability description goes here. It wraps to multiple lines if needed."
+fit_content = true
+scroll_active = false

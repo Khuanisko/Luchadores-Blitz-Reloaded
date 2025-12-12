@@ -206,9 +206,23 @@ func _on_mouse_entered() -> void:
 	# Update tooltip content
 	tooltip_instance.show_unit(unit_data)
 	
-	# Position tooltip to the right of the unit slot but with significant overlap
+	# Force update to get accurate size
+	tooltip_instance.reset_size()
+	
+	# Calculate Position
 	var slot_rect = get_global_rect()
-	tooltip_instance.global_position = Vector2(slot_rect.end.x - 50, slot_rect.position.y + 10)
+	var viewport_rect = get_viewport().get_visible_rect()
+	var tooltip_width = tooltip_instance.size.x
+	
+	# Default: To the right
+	var final_x = slot_rect.end.x - 50
+	
+	# Check if it overflows right edge
+	if final_x + tooltip_width > viewport_rect.size.x:
+		# Flip to Left
+		final_x = slot_rect.position.x - tooltip_width + 50
+	
+	tooltip_instance.global_position = Vector2(final_x, slot_rect.position.y + 10)
 
 
 func _on_mouse_exited() -> void:

@@ -23,15 +23,22 @@ func generate_enemy_team() -> void:
 
 
 func _create_unit(unit_name: String) -> UnitData:
-	var unit = UnitData.new()
-	unit.unit_name = unit_name
-	
 	# Load stats
 	var stats = CharacterStats.get_stats(unit_name)
+	
+	var unit = UnitData.new()
+	unit.unit_name = stats.get("display_name", unit_name.capitalize())
 	unit.hp = stats.hp
 	unit.max_hp = stats.hp
 	unit.attack = stats.attack
 	unit.cost = stats.cost
+	unit.tier = stats.get("tier", 1)
+	
+	unit.unit_class = stats.get("unit_class", "Luchador")
+	unit.faction = stats.get("faction", "nieznana")
+	unit.heel_face = stats.get("heel_face", "Face")
+	unit.ability_name = stats.get("ability_name", "???")
+	unit.ability_description = stats.get("ability_description", "Brak opisu.")
 	
 	# We don't need texture here as Fighter scene loads it by name
 	# But checking for box texture if needed for debugging or future UI

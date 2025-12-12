@@ -11,6 +11,27 @@ extends Resource
 @export var max_hp: int = 1
 @export var attack: int = 1
 @export var cost: int = 3
+@export var tier: int = 1
+
+# New tooltip fields
+@export var unit_class: String = "Luchador"
+@export var faction: String = "Independent"
+@export var heel_face: String = "Face" # "Face" (Good) or "Heel" (Bad)
+@export var ability_name: String = "Basic Strike"
+@export_multiline var ability_description: String = "Deals damage to the opponent."
+
+const TIER_NAMES = {
+	1: "Backyard",
+	2: "Garage",
+	3: "Indie",
+	4: "Superstar",
+	5: "Main Event",
+	6: "Hall of Fame"
+}
+
+func get_tier_name() -> String:
+	return TIER_NAMES.get(tier, "Tier " + str(tier))
+
 
 @export var level: int = 1
 @export var xp: int = 0
