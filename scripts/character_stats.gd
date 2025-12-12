@@ -6,11 +6,11 @@ extends RefCounted
 
 # Stats for each character: {hp, attack, cost}
 const STATS: Dictionary = {
-	"Gonzales": {"hp": 4, "attack": 2, "cost": 3},
-	"Marco": {"hp": 3, "attack": 3, "cost": 3},
-	"Dolores": {"hp": 2, "attack": 4, "cost": 3},
-	"El Torro": {"hp": 5, "attack": 2, "cost": 3},
-	"El Jaguarro": {"hp": 3, "attack": 5, "cost": 3},
+	"gonzales": {"hp": 3, "attack": 4, "cost": 3},
+	"dolores": {"hp": 2, "attack": 2, "cost": 3},
+	"marco": {"hp": 2, "attack": 3, "cost": 3},
+	"eljaguarro": {"hp": 3, "attack": 6, "cost": 3},
+	"eltorro": {"hp": 6, "attack": 1, "cost": 3},
 }
 
 static func get_stats(character_name: String) -> Dictionary:
