@@ -2,7 +2,8 @@ extends Control
 
 @onready var label: Label = $Label
 @onready var background: TextureRect = $Background
-@onready var result_label: Label = $ResultLabel
+@onready var result_label: Label = $UILayer/ResultLabel
+@onready var fighters_container: Node2D = $FightersContainer
 
 const FIGHTER_SCENE = preload("res://scenes/battle/fighter.tscn")
 
@@ -55,7 +56,7 @@ func _spawn_next_player_unit() -> void:
 	var unit_data = player_queue.pop_back()
 	if unit_data:
 		player_fighter = FIGHTER_SCENE.instantiate()
-		add_child(player_fighter)
+		fighters_container.add_child(player_fighter)
 		player_fighter.setup(unit_data)
 		player_fighter.position = LEFT_SPAWN
 		player_fighter.set_facing_left(false) # Face Right
@@ -67,7 +68,7 @@ func _spawn_next_enemy_unit() -> void:
 	var unit_data = enemy_queue.pop_back()
 	if unit_data:
 		enemy_fighter = FIGHTER_SCENE.instantiate()
-		add_child(enemy_fighter)
+		fighters_container.add_child(enemy_fighter)
 		enemy_fighter.setup(unit_data)
 		enemy_fighter.position = RIGHT_SPAWN
 		enemy_fighter.set_facing_left(true) # Face Left
@@ -106,7 +107,7 @@ func _battle_loop() -> void:
 		_battle_loop()
 		return
 		
-	# Move to combat
+	# Move to combat positions (step forward)
 	var tween = create_tween()
 	tween.parallel().tween_property(player_fighter, "position", LEFT_COMBAT_POS, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.parallel().tween_property(enemy_fighter, "position", RIGHT_COMBAT_POS, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
@@ -134,6 +135,10 @@ func _battle_loop() -> void:
 			player_fighter.unit_data.hp -= e_atk
 			enemy_fighter.unit_data.hp -= p_atk
 			
+			# Update HP/ATK display
+			player_fighter.update_stats_display()
+			enemy_fighter.update_stats_display()
+			
 			# Check Deaths
 			var p_dead = player_fighter.unit_data.hp <= 0
 			var e_dead = enemy_fighter.unit_data.hp <= 0
@@ -145,9 +150,20 @@ func _battle_loop() -> void:
 			if e_dead:
 				enemy_fighter.queue_free()
 				enemy_fighter = null
+	
+	# Step back to spawn positions (prevents overlapping on next attack)
+	# Only do step back if at least one fighter survived
+	if player_fighter or enemy_fighter:
+		await get_tree().create_timer(0.3).timeout
+		var step_back_tween = create_tween()
+		if player_fighter:
+			step_back_tween.parallel().tween_property(player_fighter, "position", LEFT_SPAWN, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+		if enemy_fighter:
+			step_back_tween.parallel().tween_property(enemy_fighter, "position", RIGHT_SPAWN, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+		await step_back_tween.finished
 				
 	# Loop with delay
-	await get_tree().create_timer(0.8).timeout
+	await get_tree().create_timer(0.5).timeout
 	_battle_loop()
 
 

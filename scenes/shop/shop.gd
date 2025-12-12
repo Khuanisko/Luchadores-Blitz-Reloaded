@@ -29,6 +29,7 @@ func _ready() -> void:
 	_restore_team()
 	_connect_signals()
 	_update_gold_display()
+	_update_fight_button()
 
 
 func _restore_team() -> void:
@@ -112,6 +113,7 @@ func _on_unit_purchased(unit_data: UnitData, source_slot: Control) -> void:
 	if source_slot:
 		source_slot.remove_from_shop()
 	
+	_update_fight_button()
 	print("Purchased: ", unit_data.unit_name, " for ", UNIT_COST, " gold")
 
 
@@ -154,10 +156,25 @@ func _on_unit_sold(unit_data: UnitData, _source_slot: Control) -> void:
 	# Add gold
 	gold += SELL_VALUE
 	_update_gold_display()
+	_update_fight_button()
 	print("Sold: ", unit_data.unit_name, " for ", SELL_VALUE, " gold")
 
 
+func _update_fight_button() -> void:
+	if fight_button and team_board:
+		var has_units = not team_board.team_units.is_empty()
+		fight_button.disabled = not has_units
+		if has_units:
+			fight_button.text = "FIGHT"
+		else:
+			fight_button.text = "NO TEAM"
+
+
 func _on_fight_pressed() -> void:
+	# Safety check - don't allow fight with empty team
+	if team_board and team_board.team_units.is_empty():
+		return
+	
 	if team_board:
 		GameData.player_team = team_board.team_units.duplicate()
 	
