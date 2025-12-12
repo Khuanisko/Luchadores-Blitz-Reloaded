@@ -56,17 +56,25 @@ func _create_sample_units() -> void:
 		var texture_path = "res://assets/sprites/character_boxes/" + char_name + ".png"
 		var texture = load(texture_path) as Texture2D
 		
+		# Load stats from database
+		var stats = CharacterStats.get_stats(char_name)
+		
 		var unit = UnitData.new()
-		unit.unit_name = char_name.capitalize()
+		unit.unit_name = stats.get("display_name", char_name.capitalize())
 		unit.unit_texture = texture
 		unit.unit_color = Color.WHITE  # Fallback color
 		
-		# Load stats from database
-		var stats = CharacterStats.get_stats(char_name)
 		unit.hp = stats.hp
 		unit.max_hp = stats.hp
 		unit.attack = stats.attack
 		unit.cost = stats.cost
+		unit.tier = stats.get("tier", 1)
+		
+		unit.unit_class = stats.get("unit_class", "Luchador")
+		unit.faction = stats.get("faction", "nieznana")
+		unit.heel_face = stats.get("heel_face", "Face")
+		unit.ability_name = stats.get("ability_name", "???")
+		unit.ability_description = stats.get("ability_description", "Brak opisu.")
 		
 		available_units.append(unit)
 
