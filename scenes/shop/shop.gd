@@ -21,6 +21,9 @@ var available_units: Array[UnitData] = []
 @onready var fight_button: Button = $FightButton
 @onready var gold_label: Label = $GoldLabel
 @onready var team_board: Control = $TeamBoard
+@onready var hp_label: Label = $HUD/HPContainer/HPLabel
+@onready var wins_label: Label = $HUD/WinsContainer/WinsLabel
+@onready var round_label: Label = $HUD/RoundContainer/RoundLabel
 
 
 func _ready() -> void:
@@ -30,6 +33,7 @@ func _ready() -> void:
 	_connect_signals()
 	_update_gold_display()
 	_update_fight_button()
+	_update_hud()
 
 
 func _restore_team() -> void:
@@ -190,3 +194,12 @@ func _on_fight_pressed() -> void:
 	
 	# Transition to battle arena
 	get_tree().change_scene_to_file("res://scenes/battle/battle_arena.tscn")
+
+
+func _update_hud() -> void:
+	if hp_label:
+		hp_label.text = str(GameData.player_lives)
+	if wins_label:
+		wins_label.text = str(GameData.player_wins)
+	if round_label:
+		round_label.text = str(GameData.current_round)

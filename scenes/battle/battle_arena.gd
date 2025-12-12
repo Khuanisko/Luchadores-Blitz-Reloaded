@@ -4,6 +4,9 @@ extends Control
 @onready var background: TextureRect = $Background
 @onready var result_label: Label = $UILayer/ResultLabel
 @onready var fighters_container: Node2D = $FightersContainer
+@onready var hp_label: Label = $UILayer/HUD/HPContainer/HPLabel
+@onready var wins_label: Label = $UILayer/HUD/WinsContainer/WinsLabel
+@onready var round_label: Label = $UILayer/HUD/RoundContainer/RoundLabel
 
 const FIGHTER_SCENE = preload("res://scenes/battle/fighter.tscn")
 
@@ -24,6 +27,7 @@ const RIGHT_COMBAT_POS = Vector2(1220, 650)
 
 func _ready() -> void:
 	_setup_battle()
+	_update_hud()
 	
 	# intro label anim
 	if label:
@@ -169,6 +173,19 @@ func _battle_loop() -> void:
 
 func _end_game(text: String, color: Color) -> void:
 	is_battle_active = false
+	
+	# Update game state based on result
+	if text == "ROUND WON":
+		GameData.player_wins += 1
+	elif text == "ROUND LOST":
+		GameData.player_lives -= 1
+	# DRAW: no changes to lives or wins
+	
+	# Always increment round counter
+	GameData.current_round += 1
+	
+	_update_hud()
+	
 	if result_label:
 		result_label.text = text
 		result_label.add_theme_color_override("font_color", color)
@@ -177,5 +194,21 @@ func _end_game(text: String, color: Color) -> void:
 		# Fade out logic (wait then fade then change scene)
 		await get_tree().create_timer(2.0).timeout
 		
+		# Check if game over (no lives left)
+		if GameData.player_lives <= 0:
+			# TODO: Could add game over scene here
+			GameData.player_lives = 10
+			GameData.player_wins = 0
+			GameData.current_round = 1
+		
 		# Return to shop
 		get_tree().change_scene_to_file("res://scenes/shop/shop.tscn")
+
+
+func _update_hud() -> void:
+	if hp_label:
+		hp_label.text = str(GameData.player_lives)
+	if wins_label:
+		wins_label.text = str(GameData.player_wins)
+	if round_label:
+		round_label.text = str(GameData.current_round)
