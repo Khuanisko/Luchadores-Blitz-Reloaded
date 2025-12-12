@@ -5,8 +5,10 @@ extends Control
 
 signal purchased(unit_data: UnitData)
 signal swap_requested(from_slot: Control, to_slot: Control)
+signal merge_completed(target_slot: Control, source_slot: Control)
 
 const TOOLTIP_SCENE = preload("res://scenes/shop/unit_tooltip.tscn")
+const LEVEL_UP_VFX = preload("res://scenes/vfx/level_up_vfx.tscn")
 
 var unit_data: UnitData = null
 var is_in_shop: bool = true  # Only shop units can be dragged
@@ -34,6 +36,16 @@ func _ready() -> void:
 
 func setup(data: UnitData) -> void:
 	unit_data = data
+	
+	if data == null:
+		if name_label:
+			name_label.text = ""
+		if character_texture:
+			character_texture.texture = null
+		if background:
+			background.color = Color.WHITE # Reset to default or transparent
+		return
+
 	if name_label:
 		name_label.text = data.unit_name
 	if character_texture and data.unit_texture:
@@ -64,7 +76,7 @@ func _create_drag_preview(at_position: Vector2) -> Control:
 	var preview_size = Vector2(100, 100)
 	
 	# Debug: print actual sizes
-	print("Creating preview - current size: ", size, " preview_size: ", preview_size, " custom_min: ", custom_minimum_size)
+	# print("Creating preview - current size: ", size, " preview_size: ", preview_size, " custom_min: ", custom_minimum_size)
 	
 	# Create a simple Control container
 	var preview = Control.new()
@@ -106,9 +118,9 @@ func remove_from_shop() -> void:
 	queue_free()
 
 
-# Drop handling for team unit swapping
+# Drop handling for team unit swapping and merging
 func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
-	# Only team slots can accept drops for swapping
+	# Only team slots can accept drops for swapping/merging
 	if is_in_shop:
 		return false
 	
@@ -117,8 +129,16 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 		var source = data.get("source")
 		# Don't swap with self
 		if source != self:
+			var source_data = data.get("unit_data")
+			
+			# Highlight for swap
 			if background:
-				background.modulate = Color(1.3, 1.3, 1.3)  # Highlight
+				background.modulate = Color(1.3, 1.3, 1.3)
+				
+				# Check for merge possibility (same unit name, same level, and not max level)
+				if unit_data and source_data and unit_data.unit_name == source_data.unit_name and unit_data.level == source_data.level and unit_data.level < 2:
+					background.modulate = Color(1.5, 1.5, 1.0) # Golden highlight for merge
+					
 			return true
 	return false
 
@@ -126,7 +146,31 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 func _drop_data(_at_position: Vector2, data: Variant) -> void:
 	if data is Dictionary and data.get("type") == "team_unit":
 		var source_slot = data.get("source")
+		var source_data = data.get("unit_data")
+		
 		if source_slot and source_slot != self:
+			# Check for merge (same condition as can_drop)
+			if unit_data and source_data and unit_data.unit_name == source_data.unit_name and unit_data.level == source_data.level and unit_data.level < 2:
+				# Merge Logic
+				var old_level = unit_data.level
+				unit_data.add_xp(1)
+				
+				if unit_data.level > old_level:
+					_play_level_up_vfx()
+				
+				# Visual update for current slot
+				setup(unit_data)
+				_reset_visual()
+				
+				# If tooltip is showing, update it
+				if tooltip_instance and tooltip_instance.visible:
+					tooltip_instance.show_unit(unit_data)
+				
+				# Notify parent (TeamBoard) to remove source unit from data model
+				merge_completed.emit(self, source_slot)
+				return
+
+			# Swap Request if not merged
 			swap_requested.emit(source_slot, self)
 	_reset_visual()
 
@@ -134,6 +178,14 @@ func _drop_data(_at_position: Vector2, data: Variant) -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_DRAG_END:
 		_reset_visual()
+
+
+func _play_level_up_vfx() -> void:
+	var vfx = LEVEL_UP_VFX.instantiate()
+	# Add to main scene/root to ensure it's visible and not clipped by UI containers
+	get_tree().root.add_child(vfx)
+	vfx.global_position = global_position + (size / 2) # Center on slot
+	vfx.z_index = 101 # High Z-index to render on top
 
 
 func _reset_visual() -> void:
