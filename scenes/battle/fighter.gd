@@ -1,6 +1,12 @@
 extends Node2D
 
 @onready var sprite: Sprite2D = $Sprite2D
+@onready var stats_container: VBoxContainer = $StatsContainer
+@onready var hp_label: Label = $StatsContainer/hp/Label
+@onready var attk_label: Label = $StatsContainer/attk/Label
+
+const STATS_OFFSET_LEFT = Vector2(-262, 197)  # Left side (for player)
+const STATS_OFFSET_RIGHT = Vector2(186, 197)  # Right side (for enemy)
 
 var unit_data: UnitData
 
@@ -44,10 +50,29 @@ func setup(data: UnitData) -> void:
 	
 	# Scale is set in scene
 	sprite.position = Vector2.ZERO
+	
+	# Initialize stats display
+	update_stats_display()
 
 
 func set_facing_left(is_left: bool) -> void:
 	sprite.flip_h = is_left
+	# Position stats on the opposite side of where fighter faces
+	# Player faces right -> stats on left
+	# Enemy faces left -> stats on right
+	if stats_container:
+		if is_left:
+			# Enemy - stats on right side
+			stats_container.position = STATS_OFFSET_RIGHT
+		else:
+			# Player - stats on left side
+			stats_container.position = STATS_OFFSET_LEFT
+
+
+func update_stats_display() -> void:
+	if unit_data and hp_label and attk_label:
+		hp_label.text = str(unit_data.hp)
+		attk_label.text = str(unit_data.attack)
 
 
 func play_attack_anim(target_pos: Vector2) -> void:
