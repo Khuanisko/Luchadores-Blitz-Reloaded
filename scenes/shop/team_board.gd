@@ -82,6 +82,7 @@ func _update_team_display() -> void:
 		team_slot.setup(unit_data)
 		team_slot.is_in_shop = false
 		team_slot.swap_requested.connect(_on_swap_requested)
+		team_slot.merge_completed.connect(_on_merge_completed) # Connect merge signal
 
 
 func _on_swap_requested(from_slot: Control, to_slot: Control) -> void:
@@ -92,6 +93,15 @@ func _on_swap_requested(from_slot: Control, to_slot: Control) -> void:
 		var temp = team_units[from_index]
 		team_units[from_index] = team_units[to_index]
 		team_units[to_index] = temp
+		_update_team_display()
+
+
+# Handle merge: remove the source unit from the array and refresh
+func _on_merge_completed(_target_slot: Control, source_slot: Control) -> void:
+	var from_index = source_slot.get_index()
+	
+	if from_index >= 0 and from_index < team_units.size():
+		team_units.remove_at(from_index)
 		_update_team_display()
 
 

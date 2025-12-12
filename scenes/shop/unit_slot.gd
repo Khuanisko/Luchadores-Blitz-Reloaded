@@ -34,6 +34,16 @@ func _ready() -> void:
 
 func setup(data: UnitData) -> void:
 	unit_data = data
+	
+	if data == null:
+		if name_label:
+			name_label.text = ""
+		if character_texture:
+			character_texture.texture = null
+		if background:
+			background.color = Color.WHITE # Reset to default or transparent
+		return
+
 	if name_label:
 		name_label.text = data.unit_name
 	if character_texture and data.unit_texture:
@@ -106,9 +116,11 @@ func remove_from_shop() -> void:
 	queue_free()
 
 
-# Drop handling for team unit swapping
+signal merge_completed(target_slot: Control, source_slot: Control)
+
+# Drop handling for team unit swapping and merging
 func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
-	# Only team slots can accept drops for swapping
+	# Only team slots can accept drops for swapping/merging
 	if is_in_shop:
 		return false
 	
@@ -117,8 +129,16 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 		var source = data.get("source")
 		# Don't swap with self
 		if source != self:
+			var source_data = data.get("unit_data")
+			
+			# Highlight for swap
 			if background:
-				background.modulate = Color(1.3, 1.3, 1.3)  # Highlight
+				background.modulate = Color(1.3, 1.3, 1.3)
+				
+				# Check for merge possibility (same unit name and strictly same level)
+				if unit_data and source_data and unit_data.unit_name == source_data.unit_name and unit_data.level == source_data.level:
+					background.modulate = Color(1.5, 1.5, 1.0) # Golden highlight for merge
+					
 			return true
 	return false
 
@@ -126,7 +146,27 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 func _drop_data(_at_position: Vector2, data: Variant) -> void:
 	if data is Dictionary and data.get("type") == "team_unit":
 		var source_slot = data.get("source")
+		var source_data = data.get("unit_data")
+		
 		if source_slot and source_slot != self:
+			# Check for merge
+			if unit_data and source_data and unit_data.unit_name == source_data.unit_name and unit_data.level == source_data.level:
+				# Merge Logic
+				unit_data.add_xp(1)
+				
+				# Visual update for current slot
+				setup(unit_data)
+				_reset_visual()
+				
+				# If tooltip is showing, update it
+				if tooltip_instance and tooltip_instance.visible:
+					tooltip_instance.show_unit(unit_data)
+				
+				# Notify parent (TeamBoard) to remove source unit from data model
+				merge_completed.emit(self, source_slot)
+				return
+
+			# Swap Request if not merged
 			swap_requested.emit(source_slot, self)
 	_reset_visual()
 
