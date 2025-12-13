@@ -96,3 +96,12 @@ func play_hit_anim() -> void:
 	tween.parallel().tween_property(sprite, "position", original_pos + shake_offset, 0.05)
 	tween.chain().tween_property(sprite, "position", original_pos - shake_offset, 0.05)
 	tween.chain().tween_property(sprite, "position", original_pos, 0.05)
+
+
+func play_ability_vfx(color: Color = Color.GOLD) -> void:
+	var tween = create_tween()
+	# Flash color
+	tween.tween_property(sprite, "modulate", color, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(sprite, "modulate", Color.WHITE, 0.2)
+
+
