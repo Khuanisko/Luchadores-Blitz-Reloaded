@@ -40,8 +40,16 @@ func _ready() -> void:
 
 func _setup_battle() -> void:
 	# Clone global teams to local queues for this battle instance
-	player_queue = GameData.player_team.duplicate()
-	enemy_queue = GameData.enemy_team.duplicate()
+	# Clone global teams to local queues for this battle instance
+	# We use duplicate() on the UnitInstance resource so that modifications (HP, Attack)
+	# during battle do NOT affect the persistent units in GameData.
+	player_queue = []
+	for unit in GameData.player_team:
+		player_queue.append(unit.duplicate())
+		
+	enemy_queue = []
+	for unit in GameData.enemy_team:
+		enemy_queue.append(unit.duplicate())
 	
 	if player_queue.is_empty():
 		return

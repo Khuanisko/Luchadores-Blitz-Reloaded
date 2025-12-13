@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=2 format=3 uid="uid://b11wrm0mqcn57"]
+
+[ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_p6uxs"]
+
+[resource]
+script = ExtResource("1_p6uxs")
+id = "donpedro"
+unit_name = "Don Pedro"
+base_hp = 3
+unit_class = "Technician"
+faction = "Los Banditos"
+heel_face = "Heel"
+ability_name = "Faction Bond"
+ability_description = "Gain 1 gold"
+metadata/_custom_type_script = "uid://7upuukcophge"

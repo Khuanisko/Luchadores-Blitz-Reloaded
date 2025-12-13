@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=2 format=3 uid="uid://djg7enjak2asn"]
+
+[ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_5x1v0"]
+
+[resource]
+script = ExtResource("1_5x1v0")
+id = "elbarril"
+unit_name = "El Barril"
+unit_class = "Power House"
+faction = "Los Banditos"
+heel_face = "Heel"
+ability_name = "Prize Fighter"
+ability_description = "Gain [b]  +1 [/b] Health"
+metadata/_custom_type_script = "uid://7upuukcophge"

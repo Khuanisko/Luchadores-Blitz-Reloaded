@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=2 format=3 uid="uid://bk8082hi6hobq"]
+
+[ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_ijsy8"]
+
+[resource]
+script = ExtResource("1_ijsy8")
+id = "lavibora"
+unit_name = "La Vibora"
+base_hp = 2
+base_attack = 2
+unit_class = "Striker"
+heel_face = "Heel"
+ability_name = "Entrance"
+ability_description = "Deal [b] 1 [/b] damage to current opponent"
+metadata/_custom_type_script = "uid://7upuukcophge"
