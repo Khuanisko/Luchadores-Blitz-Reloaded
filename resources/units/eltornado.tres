@@ -1,11 +1,13 @@
-[gd_resource type="Resource" script_class="UnitDefinition" load_steps=2 format=3 uid="uid://darnfeaad1d1r"]
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=3 format=3 uid="uid://darnfeaad1d1r"]
 
+[ext_resource type="Texture2D" uid="uid://dsbe5d4bixheg" path="res://assets/sprites/character_boxes/eltornado.png" id="1_on6eq"]
 [ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_xs4pg"]
 
 [resource]
 script = ExtResource("1_xs4pg")
 id = "eltornado"
 unit_name = "El Tornado"
+portrait = ExtResource("1_on6eq")
 base_hp = 3
 base_attack = 3
 unit_class = "High Flyer"

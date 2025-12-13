@@ -1,11 +1,13 @@
-[gd_resource type="Resource" script_class="UnitDefinition" load_steps=2 format=3 uid="uid://djg7enjak2asn"]
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=3 format=3 uid="uid://djg7enjak2asn"]
 
 [ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_5x1v0"]
+[ext_resource type="Texture2D" uid="uid://ccs1d0cmg2l64" path="res://assets/sprites/character_boxes/elbarril.png" id="1_mymva"]
 
 [resource]
 script = ExtResource("1_5x1v0")
 id = "elbarril"
 unit_name = "El Barril"
+portrait = ExtResource("1_mymva")
 unit_class = "Power House"
 faction = "Los Banditos"
 heel_face = "Heel"
