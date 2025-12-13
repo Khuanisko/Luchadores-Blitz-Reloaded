@@ -1,19 +1,23 @@
-[gd_scene load_steps=15 format=3 uid="uid://df50slakhs8gj"]
+[gd_scene load_steps=19 format=3 uid="uid://df50slakhs8gj"]
 
 [ext_resource type="Script" uid="uid://1hf3up5viqj6" path="res://scenes/shop/shop.gd" id="1_main"]
 [ext_resource type="Texture2D" uid="uid://cejglfmmex0wm" path="res://assets/sprites/shop/shop.jpg" id="2_shopbg"]
 [ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="2_tp26b"]
 [ext_resource type="PackedScene" path="res://scenes/shop/shopkeeper.tscn" id="3_shopkeeper"]
-[ext_resource type="Resource" uid="uid://by3ec71cndgvu" path="res://resources/units/chada.tres" id="3_vk20h"]
 [ext_resource type="Resource" uid="uid://urmfsc2ghuvy" path="res://resources/units/dolores.tres" id="4_131kw"]
 [ext_resource type="PackedScene" uid="uid://na87q1r3rhok" path="res://scenes/shop/team_board.tscn" id="4_teamboard"]
 [ext_resource type="Texture2D" uid="uid://d1ny1p562cb36" path="res://assets/sprites/shop/heart.png" id="5_heart"]
-[ext_resource type="Resource" path="res://resources/units/eljaguarro.tres" id="5_xoc10"]
-[ext_resource type="Resource" path="res://resources/units/eltorro.tres" id="6_k5co3"]
+[ext_resource type="Resource" uid="uid://b11wrm0mqcn57" path="res://resources/units/donpedro.tres" id="6_hbyua"]
 [ext_resource type="Texture2D" uid="uid://jr6rmof3x4ev" path="res://assets/sprites/shop/wins.png" id="6_wins"]
 [ext_resource type="Resource" path="res://resources/units/gonzales.tres" id="7_6kbe7"]
+[ext_resource type="Resource" uid="uid://djg7enjak2asn" path="res://resources/units/elbarril.tres" id="7_36j3v"]
 [ext_resource type="Texture2D" uid="uid://otbhaswxrx4s" path="res://assets/sprites/shop/round.png" id="7_round"]
+[ext_resource type="Resource" uid="uid://cuihxi4j2wy5r" path="res://resources/units/eldoblon.tres" id="8_5y7fm"]
 [ext_resource type="Resource" path="res://resources/units/marco.tres" id="8_hbyua"]
+[ext_resource type="Resource" uid="uid://darnfeaad1d1r" path="res://resources/units/eltornado.tres" id="9_toxgp"]
+[ext_resource type="Resource" uid="uid://bk8082hi6hobq" path="res://resources/units/lavibora.tres" id="10_u2jek"]
+[ext_resource type="Resource" uid="uid://46bb3wf4u04e" path="res://resources/units/littledave.tres" id="11_bnu54"]
+[ext_resource type="Resource" uid="uid://fb548qxklffc" path="res://resources/units/perrorabioso.tres" id="12_noimi"]
 
 [node name="Shop" type="Control"]
 layout_mode = 3
@@ -23,7 +27,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_main")
-available_units_pool = Array[ExtResource("2_tp26b")]([ExtResource("3_vk20h"), ExtResource("4_131kw"), ExtResource("5_xoc10"), ExtResource("6_k5co3"), ExtResource("7_6kbe7"), ExtResource("8_hbyua")])
+available_units_pool = Array[ExtResource("2_tp26b")]([ExtResource("4_131kw"), ExtResource("7_6kbe7"), ExtResource("8_hbyua"), ExtResource("6_hbyua"), ExtResource("7_36j3v"), ExtResource("8_5y7fm"), ExtResource("9_toxgp"), ExtResource("10_u2jek"), ExtResource("11_bnu54"), ExtResource("12_noimi")])
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 1

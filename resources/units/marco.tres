@@ -1,19 +1,15 @@
-[gd_resource type="Resource" script_class="UnitDefinition" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=3 format=3 uid="uid://t4pjrwqjivw5"]
 
-[ext_resource type="Script" path="res://scripts/unit_definition.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/sprites/character_boxes/marco.png" id="2_tex"]
+[ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://tv3kwvob06i4" path="res://assets/sprites/character_boxes/marco.png" id="2_tex"]
 
 [resource]
 script = ExtResource("1_script")
 id = "marco"
 unit_name = "Marco"
 portrait = ExtResource("2_tex")
-base_hp = 2
-base_attack = 3
-cost = 3
-tier = 1
-unit_class = "Striker"
-faction = "Los Técnicos"
-heel_face = "Heel"
-ability_name = "Pinfall"
-ability_description = "Gains [b]+1/+1[/b] after defeating the enemy"
+base_attack = 2
+unit_class = "Technician"
+faction = "OG's"
+ability_name = "Opening Bell"
+ability_description = "Give [b] +2 [/b] health to the unit in front"

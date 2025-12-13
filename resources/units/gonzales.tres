@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="UnitDefinition" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=3 format=3 uid="uid://03eo45j5skjt"]
 
-[ext_resource type="Script" path="res://scripts/unit_definition.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/sprites/character_boxes/gonzales.png" id="2_tex"]
+[ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://b1yx4c4gvvyhv" path="res://assets/sprites/character_boxes/gonzales.png" id="2_tex"]
 
 [resource]
 script = ExtResource("1_script")
@@ -9,11 +9,8 @@ id = "gonzales"
 unit_name = "Gonzales"
 portrait = ExtResource("2_tex")
 base_hp = 3
-base_attack = 4
-cost = 3
-tier = 2
-unit_class = "Striker"
-faction = "Los Técnicos"
-heel_face = "Heel"
-ability_name = "Entrance"
-ability_description = "Gives [b] +1/+2[/b] to all [b]Garage[/b] tier units while entering the ring."
+base_attack = 2
+unit_class = "Power House"
+faction = "OG's"
+ability_name = "Faction Bond"
+ability_description = "Gains [b] +1 [/b] health"

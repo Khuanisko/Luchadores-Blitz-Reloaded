@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=2 format=3 uid="uid://fb548qxklffc"]
+
+[ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_j3em8"]
+
+[resource]
+script = ExtResource("1_j3em8")
+id = "perrorabioso"
+unit_name = "Perro Rabioso"
+base_hp = 2
+base_attack = 3
+unit_class = "Striker"
+heel_face = "Heel"
+ability_name = "Pinfall"
+ability_description = "Give [b] +1 [/b] attack to the next unit"
+metadata/_custom_type_script = "uid://7upuukcophge"

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=2 format=3 uid="uid://46bb3wf4u04e"]
+
+[ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_1hw5r"]
+
+[resource]
+script = ExtResource("1_1hw5r")
+id = "littledave"
+unit_name = "Little Dave"
+base_attack = 3
+unit_class = "High Flyer"
+ability_name = "Pinned"
+ability_description = "Summon [b] 1/1 [/b] angry fan"
+metadata/_custom_type_script = "uid://7upuukcophge"

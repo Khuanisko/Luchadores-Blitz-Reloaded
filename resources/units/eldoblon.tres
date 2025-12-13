@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=2 format=3 uid="uid://cuihxi4j2wy5r"]
+
+[ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_8p1ly"]
+
+[resource]
+script = ExtResource("1_8p1ly")
+id = "eldoblon"
+unit_name = "El Doblon"
+base_hp = 2
+base_attack = 2
+unit_class = "High Flyer"
+faction = "Los Banditos"
+heel_face = "Heel"
+ability_description = "Sells for [b] 3 [/b] gold"
+metadata/_custom_type_script = "uid://7upuukcophge"
