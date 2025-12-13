@@ -3,7 +3,7 @@
 
 extends Control
 
-signal unit_sold(unit_data: UnitData, source_slot: Control)
+signal unit_sold(unit: UnitInstance, source_slot: Control)
 
 @onready var background: ColorRect = $Background
 @onready var label: Label = $Label
@@ -30,11 +30,11 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 
 func _drop_data(_at_position: Vector2, data: Variant) -> void:
 	if data is Dictionary and data.get("type") == "team_unit":
-		var unit_data: UnitData = data.get("unit_data")
+		var unit: UnitInstance = data.get("unit_data") # Using unit type hint
 		var source_slot: Control = data.get("source")
 		
 		# Emit signal to notify shop about sale
-		unit_sold.emit(unit_data, source_slot)
+		unit_sold.emit(unit, source_slot)
 		
 		# Reset visual
 		_reset_visual()

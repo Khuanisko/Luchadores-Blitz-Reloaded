@@ -3,13 +3,13 @@
 
 extends Control
 
-signal unit_sold(unit_data: UnitData, source_slot: Control)
+signal unit_sold(unit: UnitInstance, source_slot: Control)
 
 const UNIT_SLOT_SCENE = preload("res://scenes/shop/unit_slot.tscn")
 
 const MAX_TEAM_SIZE: int = 5
 var is_open: bool = false
-var team_units: Array[UnitData] = []
+var team_units: Array[UnitInstance] = []
 
 func is_full() -> bool:
 	return team_units.size() >= MAX_TEAM_SIZE
@@ -64,8 +64,8 @@ func _input(event: InputEvent) -> void:
 				close_board()
 
 
-func add_unit(unit_data: UnitData) -> void:
-	team_units.append(unit_data)
+func add_unit(unit: UnitInstance) -> void:
+	team_units.append(unit)
 	_update_team_display()
 
 
@@ -76,10 +76,10 @@ func _update_team_display() -> void:
 	
 	# Add all team units
 	for i in range(team_units.size()):
-		var unit_data = team_units[i]
+		var unit = team_units[i]
 		var team_slot = UNIT_SLOT_SCENE.instantiate()
 		team_container.add_child(team_slot)
-		team_slot.setup(unit_data)
+		team_slot.setup(unit)
 		team_slot.is_in_shop = false
 		team_slot.swap_requested.connect(_on_swap_requested)
 		team_slot.merge_completed.connect(_on_merge_completed) # Connect merge signal
@@ -105,9 +105,9 @@ func _on_merge_completed(_target_slot: Control, source_slot: Control) -> void:
 		_update_team_display()
 
 
-func _on_unit_sold(unit_data: UnitData, source_slot: Control) -> void:
+func _on_unit_sold(unit: UnitInstance, source_slot: Control) -> void:
 	var slot_index = source_slot.get_index()
 	if slot_index >= 0 and slot_index < team_units.size():
 		team_units.remove_at(slot_index)
 		_update_team_display()
-		unit_sold.emit(unit_data, source_slot)
+		unit_sold.emit(unit, source_slot)

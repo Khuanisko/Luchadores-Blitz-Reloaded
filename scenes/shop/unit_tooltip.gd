@@ -20,46 +20,46 @@ extends PanelContainer
 @onready var ability_name_label: Label = $MarginContainer/VBoxContainer/AbilitySection/AbilityName
 @onready var ability_desc_label: RichTextLabel = $MarginContainer/VBoxContainer/AbilitySection/AbilityDesc
 
-func show_unit(unit_data: UnitData) -> void:
-	if unit_data == null:
+func show_unit(unit: UnitInstance) -> void:
+	if unit == null:
 		return
 	
 	if name_label:
-		name_label.text = unit_data.unit_name
+		name_label.text = unit.unit_name
 		
 	if tier_label:
-		tier_label.text = unit_data.get_tier_name()
+		tier_label.text = unit.get_tier_name()
 	
 	if cost_label:
-		cost_label.text = "$" + str(unit_data.cost)
+		cost_label.text = "$" + str(unit.cost)
 
 	if hp_label:
-		hp_label.text = str(unit_data.hp)
+		hp_label.text = str(unit.hp)
 	if attack_label:
-		attack_label.text = str(unit_data.attack)
+		attack_label.text = str(unit.attack)
 	
 	if level_label:
-		level_label.text = "Lv " + str(unit_data.level)
+		level_label.text = "Lv " + str(unit.level)
 	
 	if xp_label:
-		xp_label.text = "XP: " + str(unit_data.xp) + "/" + str(unit_data.max_xp)
+		xp_label.text = "XP: " + str(unit.xp) + "/" + str(unit.max_xp)
 		
 	if class_label:
-		class_label.text = unit_data.unit_class
+		class_label.text = unit.unit_class
 	if faction_label:
-		faction_label.text = unit_data.faction
+		faction_label.text = unit.faction
 	if heel_face_label:
-		heel_face_label.text = unit_data.heel_face
+		heel_face_label.text = unit.heel_face
 		# Color coding for Heel/Face
-		if unit_data.heel_face.to_lower() == "face":
+		if unit.heel_face.to_lower() == "face":
 			heel_face_label.add_theme_color_override("font_color", Color(0.6, 1.0, 0.6)) # Green-ish
 		else:
 			heel_face_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.6)) # Red-ish
 			
 	if ability_name_label:
-		ability_name_label.text = unit_data.ability_name
+		ability_name_label.text = unit.ability_name
 	if ability_desc_label:
-		ability_desc_label.text = unit_data.ability_description
+		ability_desc_label.text = unit.ability_description
 	
 	visible = true
 	
