@@ -1,7 +1,7 @@
 extends Node
 
 # Game state for HUD
-var player_lives: int = 10
+var player_lives: int = 5
 var player_wins: int = 0
 var current_round: int = 1
 

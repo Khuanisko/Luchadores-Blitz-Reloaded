@@ -186,20 +186,43 @@ func _end_game(text: String, color: Color) -> void:
 	
 	_update_hud()
 	
+	# Check Game Over Conditions
+	var game_over_text = ""
+	var game_over_color = Color.WHITE
+	var is_game_over = false
+	
+	if GameData.player_wins >= 10:
+		is_game_over = true
+		game_over_text = "YOU ARE THE WORLD CHAMPION"
+		game_over_color = Color(1.0, 0.84, 0.0) # Gold
+	elif GameData.player_lives <= 0:
+		is_game_over = true
+		game_over_text = "YOU LOST"
+		game_over_color = Color(0.8, 0.1, 0.1) # Red
+		
 	if result_label:
-		result_label.text = text
-		result_label.add_theme_color_override("font_color", color)
+		# If game over, override the round result text
+		if is_game_over:
+			result_label.text = game_over_text
+			result_label.add_theme_color_override("font_color", game_over_color)
+		else:
+			result_label.text = text
+			result_label.add_theme_color_override("font_color", color)
+			
 		result_label.visible = true
 		
-		# Fade out logic (wait then fade then change scene)
-		await get_tree().create_timer(2.0).timeout
+		# Wait time depends on if it's game over (longer wait to read)
+		var wait_time = 4.0 if is_game_over else 2.0
+		await get_tree().create_timer(wait_time).timeout
 		
-		# Check if game over (no lives left)
-		if GameData.player_lives <= 0:
-			# TODO: Could add game over scene here
-			GameData.player_lives = 10
+		if is_game_over:
+			# Reset Game
+			GameData.player_lives = 5
 			GameData.player_wins = 0
 			GameData.current_round = 1
+			GameData.player_team.clear() # Clear team on reset? Or keep it? Usually hard reset.
+			# Let's clear the team for a fresh run
+			GameData.player_team.clear()
 		
 		# Return to shop
 		get_tree().change_scene_to_file("res://scenes/shop/shop.tscn")
