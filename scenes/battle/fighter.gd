@@ -8,45 +8,30 @@ extends Node2D
 const STATS_OFFSET_LEFT = Vector2(-262, 197)  # Left side (for player)
 const STATS_OFFSET_RIGHT = Vector2(186, 197)  # Right side (for enemy)
 
-var unit_data: UnitData
+var unit_instance: UnitInstance
 
-func setup(data: UnitData) -> void:
-	unit_data = data
+func setup(unit: UnitInstance) -> void:
+	unit_instance = unit
 	
-	# Map unit names (from shop/boxes) to character file names
-	# Box names: eltorro, eljaguarro -> Unit Names: Eltorro, Eljaguarro
-	# Character files: el_torro.png, el_jaguarro.png
-	
-	var file_name = data.unit_name.to_lower().replace(" ", "_") # default fallback snake_case
-	
-	# Explicit mapping for tricky cases if snake_case isn't enough
-	# "El Torro" -> "el_torro" (handled by default now)
-	# "El Jaguarro" -> "el_jaguarro" (handled by default now)
-	
-	match data.unit_name.to_lower().replace(" ", ""): # Remove spaces for matching without spaces
-		"eltorro":
-			file_name = "el_torro"
-		"eljaguarro":
-			file_name = "el_jaguarro"
-		"dolores":
-			file_name = "Dolores" # Case sensitive match just in case
+	# Try to load formatted battle sprite based on ID
+	# We expect: assets/sprites/characters/<id>.png
+	# UnitInstance definition has 'id' (e.g. "gonzales")
+	var file_name = unit.definition.id if unit.definition else unit.unit_name.to_lower().replace(" ", "")
 	
 	var texture_path = "res://assets/sprites/characters/" + file_name + ".png"
 	
-	if not ResourceLoader.exists(texture_path):
-		# Try basic lowercase if map failed or wasn't needed
-		if ResourceLoader.exists("res://assets/sprites/characters/" + data.unit_name.to_lower() + ".png"):
-			texture_path = "res://assets/sprites/characters/" + data.unit_name.to_lower() + ".png"
-		# Try original/Capitalized
-		elif ResourceLoader.exists("res://assets/sprites/characters/" + data.unit_name + ".png"):
-			texture_path = "res://assets/sprites/characters/" + data.unit_name + ".png"
-
 	if ResourceLoader.exists(texture_path):
 		sprite.texture = load(texture_path)
 	else:
-		print("Character texture not found: ", texture_path)
-		# Fallback to box texture if character not found? Or just a placeholder
-		sprite.texture = data.unit_texture 
+		# Fallback: try snake_case of name if ID didn't work (legacy support)
+		var snake_name = unit.unit_name.to_lower().replace(" ", "_")
+		if ResourceLoader.exists("res://assets/sprites/characters/" + snake_name + ".png"):
+			sprite.texture = load("res://assets/sprites/characters/" + snake_name + ".png")
+		elif unit.unit_texture:
+			# Fallback to portrait (box) if nothing else
+			sprite.texture = unit.unit_texture
+		else:
+			print("Character texture not found for: ", unit.unit_name)
 	
 	# Scale is set in scene
 	sprite.position = Vector2.ZERO
@@ -70,9 +55,9 @@ func set_facing_left(is_left: bool) -> void:
 
 
 func update_stats_display() -> void:
-	if unit_data and hp_label and attk_label:
-		hp_label.text = str(unit_data.hp)
-		attk_label.text = str(unit_data.attack)
+	if unit_instance and hp_label and attk_label:
+		hp_label.text = str(unit_instance.hp)
+		attk_label.text = str(unit_instance.attack)
 
 
 func play_attack_anim(target_pos: Vector2) -> void:

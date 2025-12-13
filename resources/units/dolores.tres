@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=3 format=3 uid="uid://urmfsc2ghuvy"]
+
+[ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://d21r8cc4lh8iq" path="res://assets/sprites/character_boxes/dolores.png" id="2_tex"]
+
+[resource]
+script = ExtResource("1_script")
+id = "dolores"
+unit_name = "Dolores"
+portrait = ExtResource("2_tex")
+base_hp = 2
+base_attack = 2
+unit_class = "Technician"
+faction = "Las Flores"
+ability_name = "Entrance"
+ability_description = "Gains [b] +1/+1[/b] while entering the ring."

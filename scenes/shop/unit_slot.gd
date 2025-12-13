@@ -3,14 +3,14 @@
 
 extends Control
 
-signal purchased(unit_data: UnitData)
+signal purchased(unit: UnitInstance)
 signal swap_requested(from_slot: Control, to_slot: Control)
 signal merge_completed(target_slot: Control, source_slot: Control)
 
 const TOOLTIP_SCENE = preload("res://scenes/shop/unit_tooltip.tscn")
 const LEVEL_UP_VFX = preload("res://scenes/vfx/level_up_vfx.tscn")
 
-var unit_data: UnitData = null
+var unit_instance: UnitInstance = null
 var is_in_shop: bool = true  # Only shop units can be dragged
 var tooltip_instance: Control = null
 
@@ -34,10 +34,10 @@ func _ready() -> void:
 	mouse_exited.connect(_on_mouse_exited)
 
 
-func setup(data: UnitData) -> void:
-	unit_data = data
+func setup(unit: UnitInstance) -> void:
+	unit_instance = unit
 	
-	if data == null:
+	if unit == null:
 		if name_label:
 			name_label.text = ""
 		if character_texture:
@@ -47,15 +47,15 @@ func setup(data: UnitData) -> void:
 		return
 
 	if name_label:
-		name_label.text = data.unit_name
-	if character_texture and data.unit_texture:
-		character_texture.texture = data.unit_texture
+		name_label.text = unit.unit_name
+	if character_texture and unit.unit_texture:
+		character_texture.texture = unit.unit_texture
 	elif background:
-		background.color = data.unit_color
+		background.color = Color.GRAY
 
 
 func _get_drag_data(at_position: Vector2) -> Variant:
-	if unit_data == null:
+	if unit_instance == null:
 		return null
 	
 	# Create drag preview with proper offset
@@ -66,7 +66,7 @@ func _get_drag_data(at_position: Vector2) -> Variant:
 	var drag_type = "shop_unit" if is_in_shop else "team_unit"
 	return {
 		"type": drag_type,
-		"unit_data": unit_data,
+		"unit_data": unit_instance,
 		"source": self
 	}
 
@@ -85,14 +85,14 @@ func _create_drag_preview(at_position: Vector2) -> Control:
 	var scale_ratio = preview_size / size if size != Vector2.ZERO else Vector2.ONE
 	var scaled_offset = at_position * scale_ratio
 	
-	if unit_data.unit_texture:
+	if unit_instance.unit_texture:
 		var tex_rect = TextureRect.new()
-		tex_rect.texture = unit_data.unit_texture
+		tex_rect.texture = unit_instance.unit_texture
 		tex_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		
 		# Get texture size and calculate scale to fit in 50x50
-		var tex_size = unit_data.unit_texture.get_size()
+		var tex_size = unit_instance.unit_texture.get_size()
 		var scale_factor = min(preview_size.x / tex_size.x, preview_size.y / tex_size.y)
 		
 		# Apply scale to get exactly 50x50 (or smaller if keeping aspect)
@@ -106,7 +106,7 @@ func _create_drag_preview(at_position: Vector2) -> Control:
 		# Fallback to ColorRect
 		var bg = ColorRect.new()
 		bg.size = preview_size
-		bg.color = unit_data.unit_color
+		bg.color = Color.GRAY
 		bg.position = -scaled_offset
 		bg.modulate.a = 0.8
 		preview.add_child(bg)
@@ -136,7 +136,7 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 				background.modulate = Color(1.3, 1.3, 1.3)
 				
 				# Check for merge possibility (same unit name, same level, and not max level)
-				if unit_data and source_data and unit_data.unit_name == source_data.unit_name and unit_data.level == source_data.level and unit_data.level < 2:
+				if unit_instance and source_data and unit_instance.unit_name == source_data.unit_name and unit_instance.level == source_data.level and unit_instance.level < 2:
 					background.modulate = Color(1.5, 1.5, 1.0) # Golden highlight for merge
 					
 			return true
@@ -150,21 +150,21 @@ func _drop_data(_at_position: Vector2, data: Variant) -> void:
 		
 		if source_slot and source_slot != self:
 			# Check for merge (same condition as can_drop)
-			if unit_data and source_data and unit_data.unit_name == source_data.unit_name and unit_data.level == source_data.level and unit_data.level < 2:
+			if unit_instance and source_data and unit_instance.unit_name == source_data.unit_name and unit_instance.level == source_data.level and unit_instance.level < 2:
 				# Merge Logic
-				var old_level = unit_data.level
-				unit_data.add_xp(1)
+				var old_level = unit_instance.level
+				unit_instance.add_xp(1)
 				
-				if unit_data.level > old_level:
+				if unit_instance.level > old_level:
 					_play_level_up_vfx()
 				
 				# Visual update for current slot
-				setup(unit_data)
+				setup(unit_instance)
 				_reset_visual()
 				
 				# If tooltip is showing, update it
 				if tooltip_instance and tooltip_instance.visible:
-					tooltip_instance.show_unit(unit_data)
+					tooltip_instance.show_unit(unit_instance)
 				
 				# Notify parent (TeamBoard) to remove source unit from data model
 				merge_completed.emit(self, source_slot)
@@ -194,7 +194,7 @@ func _reset_visual() -> void:
 
 
 func _on_mouse_entered() -> void:
-	if unit_data == null:
+	if unit_instance == null:
 		return
 	
 	# Create tooltip instance if not exists
@@ -204,7 +204,7 @@ func _on_mouse_entered() -> void:
 		get_tree().root.add_child(tooltip_instance)
 	
 	# Update tooltip content
-	tooltip_instance.show_unit(unit_data)
+	tooltip_instance.show_unit(unit_instance)
 	
 	# Force update to get accurate size
 	tooltip_instance.reset_size()

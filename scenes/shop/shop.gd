@@ -12,8 +12,9 @@ const REROLL_COST: int = 1
 const SELL_VALUE: int = 1
 var gold: int = STARTING_GOLD
 
-# Sample units for the shop
-var available_units: Array[UnitData] = []
+# Shop Data
+@export var available_units_pool: Array[UnitDefinition] = []
+var shop_units: Array[UnitInstance] = []
 
 @onready var shop_container: HBoxContainer = $ShopContainer
 @onready var shopkeeper: Control = $Shopkeeper
@@ -27,8 +28,9 @@ var available_units: Array[UnitData] = []
 
 
 func _ready() -> void:
-	_create_sample_units()
-	_populate_shop()
+	_ensure_pool_loaded()
+	_generate_shop_items()
+	_populate_shop_ui()
 	_restore_team()
 	_connect_signals()
 	_update_gold_display()
@@ -36,59 +38,51 @@ func _ready() -> void:
 	_update_hud()
 
 
+func _ensure_pool_loaded() -> void:
+	if not available_units_pool.is_empty():
+		return
+		
+	# Fallback: Load known units if none assigned in inspector
+	var unit_ids = ["gonzales", "dolores", "marco", "eljaguarro", "eltorro"]
+	for id in unit_ids:
+		var path = "res://resources/units/" + id + ".tres"
+		if ResourceLoader.exists(path):
+			available_units_pool.append(load(path))
+
+
 func _restore_team() -> void:
 	if GameData.player_team.is_empty():
 		return
 		
 	if team_board:
-		for unit_data in GameData.player_team:
+		for unit in GameData.player_team:
 			# Fully heal unit before adding back to board
-			unit_data.hp = unit_data.max_hp
-			team_board.add_unit(unit_data)
+			unit.hp = unit.max_hp
+			team_board.add_unit(unit)
 
 
-func _create_sample_units() -> void:
-	# Load units from character box textures
-	var character_files = [
-		"dolores",
-		"eljaguarro",
-		"eltorro",
-		"gonzales",
-		"marco"
-	]
+func _generate_shop_items() -> void:
+	shop_units.clear()
 	
-	for char_name in character_files:
-		var texture_path = "res://assets/sprites/character_boxes/" + char_name + ".png"
-		var texture = load(texture_path) as Texture2D
-		
-		# Load stats from database
-		var stats = CharacterStats.get_stats(char_name)
-		
-		var unit = UnitData.new()
-		unit.unit_name = stats.get("display_name", char_name.capitalize())
-		unit.unit_texture = texture
-		unit.unit_color = Color.WHITE  # Fallback color
-		
-		unit.hp = stats.hp
-		unit.max_hp = stats.hp
-		unit.attack = stats.attack
-		unit.cost = stats.cost
-		unit.tier = stats.get("tier", 1)
-		
-		unit.unit_class = stats.get("unit_class", "Luchador")
-		unit.faction = stats.get("faction", "nieznana")
-		unit.heel_face = stats.get("heel_face", "Face")
-		unit.ability_name = stats.get("ability_name", "???")
-		unit.ability_description = stats.get("ability_description", "Brak opisu.")
-		
-		available_units.append(unit)
+	if available_units_pool.is_empty():
+		return
+
+	# Create 5 random units
+	for i in range(5):
+		var def = available_units_pool.pick_random()
+		var unit = UnitInstance.new(def)
+		shop_units.append(unit)
 
 
-func _populate_shop() -> void:
-	for unit_data in available_units:
+func _populate_shop_ui() -> void:
+	# Clear existing slots
+	for child in shop_container.get_children():
+		child.queue_free()
+
+	for unit_instance in shop_units:
 		var slot = UNIT_SLOT_SCENE.instantiate()
 		shop_container.add_child(slot)
-		slot.setup(unit_data)
+		slot.setup(unit_instance)
 
 
 func _connect_signals() -> void:
@@ -102,7 +96,7 @@ func _connect_signals() -> void:
 		team_board.unit_sold.connect(_on_unit_sold)
 
 
-func _on_unit_purchased(unit_data: UnitData, source_slot: Control) -> void:
+func _on_unit_purchased(unit: UnitInstance, source_slot: Control) -> void:
 	# Check if player can afford
 	if gold < UNIT_COST:
 		print("Not enough gold!")
@@ -119,14 +113,14 @@ func _on_unit_purchased(unit_data: UnitData, source_slot: Control) -> void:
 	
 	# Add unit to team board
 	if team_board:
-		team_board.add_unit(unit_data)
+		team_board.add_unit(unit)
 	
 	# Remove the slot from shop
 	if source_slot:
 		source_slot.remove_from_shop()
 	
 	_update_fight_button()
-	print("Purchased: ", unit_data.unit_name, " for ", UNIT_COST, " gold")
+	print("Purchased: ", unit.unit_name, " for ", UNIT_COST, " gold")
 
 
 func _on_reroll_pressed() -> void:
@@ -139,19 +133,8 @@ func _on_reroll_pressed() -> void:
 
 
 func _reroll_shop() -> void:
-	# Clear current shop
-	for child in shop_container.get_children():
-		child.queue_free()
-	
-	# Generate new random units
-	available_units.clear()
-	_create_sample_units()
-	
-	# Shuffle the units
-	available_units.shuffle()
-	
-	# Populate shop with shuffled units
-	_populate_shop()
+	_generate_shop_items()
+	_populate_shop_ui()
 	print("Shop rerolled!")
 
 
@@ -164,12 +147,12 @@ func _update_gold_display() -> void:
 		reroll_button.disabled = gold < REROLL_COST
 
 
-func _on_unit_sold(unit_data: UnitData, _source_slot: Control) -> void:
+func _on_unit_sold(unit: UnitInstance, _source_slot: Control) -> void:
 	# Add gold
 	gold += SELL_VALUE
 	_update_gold_display()
 	_update_fight_button()
-	print("Sold: ", unit_data.unit_name, " for ", SELL_VALUE, " gold")
+	print("Sold: ", unit.unit_name, " for ", SELL_VALUE, " gold")
 
 
 func _update_fight_button() -> void:

@@ -13,8 +13,8 @@ const FIGHTER_SCENE = preload("res://scenes/battle/fighter.tscn")
 var player_fighter: Node2D
 var enemy_fighter: Node2D
 
-var player_queue: Array[UnitData] = []
-var enemy_queue: Array[UnitData] = []
+var player_queue: Array[UnitInstance] = []
+var enemy_queue: Array[UnitInstance] = []
 
 var is_battle_active: bool = false
 
@@ -73,11 +73,11 @@ enum AbilityTrigger { ENTRANCE, ATTACK, KILL }
 func _spawn_next_player_unit(trigger_ability: bool = true) -> void:
 	if player_fighter != null: return # Already have one
 	
-	var unit_data = player_queue.pop_back()
-	if unit_data:
+	var unit = player_queue.pop_back()
+	if unit:
 		player_fighter = FIGHTER_SCENE.instantiate()
 		fighters_container.add_child(player_fighter)
-		player_fighter.setup(unit_data)
+		player_fighter.setup(unit)
 		player_fighter.position = LEFT_SPAWN
 		player_fighter.set_facing_left(false) # Face Right
 		
@@ -89,11 +89,11 @@ func _spawn_next_player_unit(trigger_ability: bool = true) -> void:
 func _spawn_next_enemy_unit(trigger_ability: bool = true) -> void:
 	if enemy_fighter != null: return
 	
-	var unit_data = enemy_queue.pop_back()
-	if unit_data:
+	var unit = enemy_queue.pop_back()
+	if unit:
 		enemy_fighter = FIGHTER_SCENE.instantiate()
 		fighters_container.add_child(enemy_fighter)
-		enemy_fighter.setup(unit_data)
+		enemy_fighter.setup(unit)
 		enemy_fighter.position = RIGHT_SPAWN
 		enemy_fighter.set_facing_left(true) # Face Left
 		
@@ -103,9 +103,9 @@ func _spawn_next_enemy_unit(trigger_ability: bool = true) -> void:
 
 
 func _trigger_abilities(trigger: AbilityTrigger, source: Node2D, target: Node2D) -> void:
-	if not source or not source.unit_data: return
+	if not source or not source.unit_instance: return
 	
-	var data = source.unit_data
+	var data = source.unit_instance
 	var ability_name = data.ability_name.replace(" ", "")
 	var trig_happened = false
 	
@@ -141,7 +141,7 @@ func _trigger_abilities(trigger: AbilityTrigger, source: Node2D, target: Node2D)
 					trig_happened = true
 					source.play_ability_vfx(Color.ORANGE_RED)
 					target.play_hit_anim()
-					target.unit_data.hp -= 4
+					target.unit_instance.hp -= 4
 					target.update_stats_display()
 					# Note: Death check will happen in main loop or we need to handle it here?
 					# The main loop checks for null fighters. Need to clean up here if dead?
@@ -245,19 +245,19 @@ func _battle_loop() -> void:
 			player_fighter.play_hit_anim()
 			enemy_fighter.play_hit_anim()
 			
-			var p_atk = player_fighter.unit_data.attack
-			var e_atk = enemy_fighter.unit_data.attack
+			var p_atk = player_fighter.unit_instance.attack
+			var e_atk = enemy_fighter.unit_instance.attack
 			
-			player_fighter.unit_data.hp -= e_atk
-			enemy_fighter.unit_data.hp -= p_atk
+			player_fighter.unit_instance.hp -= e_atk
+			enemy_fighter.unit_instance.hp -= p_atk
 			
 			# Update HP/ATK display
 			player_fighter.update_stats_display()
 			enemy_fighter.update_stats_display()
 			
 			# Check Deaths
-			var p_died = player_fighter.unit_data.hp <= 0
-			var e_died = enemy_fighter.unit_data.hp <= 0
+			var p_died = player_fighter.unit_instance.hp <= 0
+			var e_died = enemy_fighter.unit_instance.hp <= 0
 			
 			# Trigger Kill Abilities
 			if p_died and not e_died:
@@ -284,11 +284,11 @@ func _battle_loop() -> void:
 
 
 func _handle_deaths() -> void:
-	if player_fighter and player_fighter.unit_data.hp <= 0:
+	if player_fighter and player_fighter.unit_instance.hp <= 0:
 		player_fighter.queue_free()
 		player_fighter = null
 		
-	if enemy_fighter and enemy_fighter.unit_data.hp <= 0:
+	if enemy_fighter and enemy_fighter.unit_instance.hp <= 0:
 		enemy_fighter.queue_free()
 		enemy_fighter = null
 
