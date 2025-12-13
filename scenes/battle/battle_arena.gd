@@ -46,15 +46,31 @@ func _setup_battle() -> void:
 	if player_queue.is_empty():
 		return
 	
-	_spawn_next_player_unit()
-	_spawn_next_enemy_unit()
+	# Spawn INITIAL units without triggering abilities properly yet
+	# because opponent might be missing for the first one spawned
+	_spawn_next_player_unit(false)
+	_spawn_next_enemy_unit(false)
 	
 	# Start battle loop after a short delay
 	await get_tree().create_timer(1.5).timeout
+	
+	# Now trigger entrance abilities for the starting pair
+	# We check existence in case something weird happened, but they should be there
+	if player_fighter and enemy_fighter:
+		_trigger_abilities(AbilityTrigger.ENTRANCE, player_fighter, enemy_fighter)
+		_trigger_abilities(AbilityTrigger.ENTRANCE, enemy_fighter, player_fighter)
+		
+		# Handle any instant deaths from entrance abilities (e.g. Jaguarro)
+		_handle_deaths()
+		
 	_start_combat_round()
 
 
-func _spawn_next_player_unit() -> void:
+# Constants
+enum AbilityTrigger { ENTRANCE, ATTACK, KILL }
+
+
+func _spawn_next_player_unit(trigger_ability: bool = true) -> void:
 	if player_fighter != null: return # Already have one
 	
 	var unit_data = player_queue.pop_back()
@@ -64,9 +80,13 @@ func _spawn_next_player_unit() -> void:
 		player_fighter.setup(unit_data)
 		player_fighter.position = LEFT_SPAWN
 		player_fighter.set_facing_left(false) # Face Right
+		
+		if trigger_ability:
+			# Trigger Entrance Ability (Opponent should exist in mid-battle spawns)
+			_trigger_abilities(AbilityTrigger.ENTRANCE, player_fighter, enemy_fighter)
 
 
-func _spawn_next_enemy_unit() -> void:
+func _spawn_next_enemy_unit(trigger_ability: bool = true) -> void:
 	if enemy_fighter != null: return
 	
 	var unit_data = enemy_queue.pop_back()
@@ -76,6 +96,77 @@ func _spawn_next_enemy_unit() -> void:
 		enemy_fighter.setup(unit_data)
 		enemy_fighter.position = RIGHT_SPAWN
 		enemy_fighter.set_facing_left(true) # Face Left
+		
+		if trigger_ability:
+			# Trigger Entrance Ability
+			_trigger_abilities(AbilityTrigger.ENTRANCE, enemy_fighter, player_fighter)
+
+
+func _trigger_abilities(trigger: AbilityTrigger, source: Node2D, target: Node2D) -> void:
+	if not source or not source.unit_data: return
+	
+	var data = source.unit_data
+	var ability_name = data.ability_name.replace(" ", "")
+	var trig_happened = false
+	
+	# Match by Name or specific IDs if we had them. Using name for now.
+	match trigger:
+		AbilityTrigger.ENTRANCE:
+			if data.unit_name == "Gonzales":
+				# +1/+2 to all Garage tier units
+				trig_happened = true
+				source.play_ability_vfx(Color.GOLD)
+				
+				# Determine which queue belongs to this source
+				var allies_queue = player_queue if source == player_fighter else enemy_queue
+				
+				for ally in allies_queue:
+					if ally.tier == 2: # Garage Tier
+						ally.attack += 1
+						ally.hp += 2
+						ally.max_hp += 2
+						
+			elif data.unit_name == "Dolores":
+				# +1/+1 Self
+				trig_happened = true
+				source.play_ability_vfx(Color.MAGENTA)
+				data.attack += 1
+				data.hp += 1
+				data.max_hp += 1
+				source.update_stats_display()
+				
+			elif data.unit_name == "El Jaguarro":
+				# Deal 4 dmg to enemy
+				if target:
+					trig_happened = true
+					source.play_ability_vfx(Color.ORANGE_RED)
+					target.play_hit_anim()
+					target.unit_data.hp -= 4
+					target.update_stats_display()
+					# Note: Death check will happen in main loop or we need to handle it here?
+					# The main loop checks for null fighters. Need to clean up here if dead?
+					# Better let main loop handle destruction, but we can visually show it.
+					
+		AbilityTrigger.ATTACK:
+			if data.unit_name == "El Torro":
+				# +1 Attack
+				trig_happened = true
+				source.play_ability_vfx(Color.RED)
+				data.attack += 1
+				source.update_stats_display()
+				
+		AbilityTrigger.KILL:
+			if data.unit_name == "Marco":
+				# +1/+1 after kill
+				trig_happened = true
+				source.play_ability_vfx(Color.GREEN)
+				data.attack += 1
+				data.hp += 1
+				data.max_hp += 1 # Permanent? Assuming yes for autobattler
+				source.update_stats_display()
+
+	if trig_happened:
+		await get_tree().create_timer(0.5).timeout
 
 
 func _start_combat_round() -> void:
@@ -85,6 +176,9 @@ func _start_combat_round() -> void:
 
 func _battle_loop() -> void:
 	if not is_battle_active: return
+	
+	# Quick check for death from Entrance abilities
+	_handle_deaths()
 	
 	# Check Win/Loss Condition
 	if player_fighter == null and player_queue.is_empty():
@@ -100,13 +194,25 @@ func _battle_loop() -> void:
 	# Spawn if missing
 	if player_fighter == null:
 		_spawn_next_player_unit()
+		# Re-check death/win in case spawn ability killed someone
+		await get_tree().process_frame # Allow UI to update
+		_handle_deaths()
+		if enemy_fighter == null and enemy_queue.is_empty() and player_fighter != null:
+			_end_game("ROUND WON", Color.GREEN)
+			return
+			
 	if enemy_fighter == null:
 		_spawn_next_enemy_unit()
+		await get_tree().process_frame
+		_handle_deaths()
+		if player_fighter == null and player_queue.is_empty():
+			if enemy_fighter == null and enemy_queue.is_empty(): _end_game("DRAW", Color.WHITE)
+			else: _end_game("ROUND LOST", Color.RED)
+			return
 		
 	# Wait for spawns
 	if player_fighter == null or enemy_fighter == null:
-		# If we still lack a fighter and queues are checked above, it means one side ran out.
-		# But the win check is at the top. So we should re-loop to catch the win condition.
+		# Loop to catch next spawn or win
 		await get_tree().process_frame
 		_battle_loop()
 		return
@@ -119,6 +225,12 @@ func _battle_loop() -> void:
 	
 	# Attack Phase
 	await get_tree().create_timer(0.2).timeout
+	
+	# Trigger Attack Abilities
+	if player_fighter and enemy_fighter:
+		_trigger_abilities(AbilityTrigger.ATTACK, player_fighter, enemy_fighter)
+		_trigger_abilities(AbilityTrigger.ATTACK, enemy_fighter, player_fighter)
+		await get_tree().create_timer(0.3).timeout # Wait for buffs
 	
 	# Play animations
 	if player_fighter and enemy_fighter:
@@ -144,19 +256,19 @@ func _battle_loop() -> void:
 			enemy_fighter.update_stats_display()
 			
 			# Check Deaths
-			var p_dead = player_fighter.unit_data.hp <= 0
-			var e_dead = enemy_fighter.unit_data.hp <= 0
+			var p_died = player_fighter.unit_data.hp <= 0
+			var e_died = enemy_fighter.unit_data.hp <= 0
 			
-			if p_dead:
-				player_fighter.queue_free()
-				player_fighter = null
+			# Trigger Kill Abilities
+			if p_died and not e_died:
+				_trigger_abilities(AbilityTrigger.KILL, enemy_fighter, player_fighter)
+			if e_died and not p_died:
+				_trigger_abilities(AbilityTrigger.KILL, player_fighter, enemy_fighter)
 			
-			if e_dead:
-				enemy_fighter.queue_free()
-				enemy_fighter = null
+			# Handle removal
+			_handle_deaths()
 	
-	# Step back to spawn positions (prevents overlapping on next attack)
-	# Only do step back if at least one fighter survived
+	# Step back if survived
 	if player_fighter or enemy_fighter:
 		await get_tree().create_timer(0.3).timeout
 		var step_back_tween = create_tween()
@@ -169,6 +281,16 @@ func _battle_loop() -> void:
 	# Loop with delay
 	await get_tree().create_timer(0.5).timeout
 	_battle_loop()
+
+
+func _handle_deaths() -> void:
+	if player_fighter and player_fighter.unit_data.hp <= 0:
+		player_fighter.queue_free()
+		player_fighter = null
+		
+	if enemy_fighter and enemy_fighter.unit_data.hp <= 0:
+		enemy_fighter.queue_free()
+		enemy_fighter = null
 
 
 func _end_game(text: String, color: Color) -> void:
