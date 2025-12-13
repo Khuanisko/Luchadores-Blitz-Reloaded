@@ -1,11 +1,13 @@
-[gd_resource type="Resource" script_class="UnitDefinition" load_steps=2 format=3 uid="uid://fb548qxklffc"]
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=3 format=3 uid="uid://fb548qxklffc"]
 
 [ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_j3em8"]
+[ext_resource type="Texture2D" uid="uid://cwdubemyvh6xb" path="res://assets/sprites/character_boxes/perrorabioso.png" id="1_s0c7f"]
 
 [resource]
 script = ExtResource("1_j3em8")
 id = "perrorabioso"
 unit_name = "Perro Rabioso"
+portrait = ExtResource("1_s0c7f")
 base_hp = 2
 base_attack = 3
 unit_class = "Striker"

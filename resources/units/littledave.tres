@@ -1,11 +1,13 @@
-[gd_resource type="Resource" script_class="UnitDefinition" load_steps=2 format=3 uid="uid://46bb3wf4u04e"]
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=3 format=3 uid="uid://46bb3wf4u04e"]
 
 [ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_1hw5r"]
+[ext_resource type="Texture2D" uid="uid://kbai5dayg84x" path="res://assets/sprites/character_boxes/littledave.png" id="1_f28hb"]
 
 [resource]
 script = ExtResource("1_1hw5r")
 id = "littledave"
 unit_name = "Little Dave"
+portrait = ExtResource("1_f28hb")
 base_attack = 3
 unit_class = "High Flyer"
 ability_name = "Pinned"

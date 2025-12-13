@@ -88,5 +88,3 @@ func play_ability_vfx(color: Color = Color.GOLD) -> void:
 	# Flash color
 	tween.tween_property(sprite, "modulate", color, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	tween.tween_property(sprite, "modulate", Color.WHITE, 0.2)
-
-
