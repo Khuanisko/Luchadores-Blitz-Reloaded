@@ -59,6 +59,7 @@ func _restore_team() -> void:
 			# Fully heal unit before adding back to board
 			unit.hp = unit.max_hp
 			team_board.add_unit(unit)
+			unit.connect_shop_signals()
 
 
 func _generate_shop_items() -> void:
@@ -114,6 +115,12 @@ func _on_unit_purchased(unit: UnitInstance, source_slot: Control) -> void:
 	# Add unit to team board
 	if team_board:
 		team_board.add_unit(unit)
+		
+		# Connect triggers for the new team member
+		unit.connect_shop_signals()
+		
+		# Notify potential listeners (other team members)
+		GameData.unit_purchased.emit(unit)
 	
 	# Remove the slot from shop
 	if source_slot:
@@ -148,6 +155,9 @@ func _update_gold_display() -> void:
 
 
 func _on_unit_sold(unit: UnitInstance, _source_slot: Control) -> void:
+	# Disconnect triggers
+	unit.disconnect_shop_signals()
+	
 	# Add gold
 	gold += SELL_VALUE
 	_update_gold_display()

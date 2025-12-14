@@ -78,3 +78,29 @@ func level_up() -> void:
 	max_hp *= 2
 	hp = max_hp # Heal on level up
 	attack *= 2
+
+
+# --- Ability System (Shop Phase) ---
+
+func connect_shop_signals() -> void:
+	if not GameData.unit_purchased.is_connected(_on_global_unit_purchased):
+		GameData.unit_purchased.connect(_on_global_unit_purchased)
+
+func disconnect_shop_signals() -> void:
+	if GameData.unit_purchased.is_connected(_on_global_unit_purchased):
+		GameData.unit_purchased.disconnect(_on_global_unit_purchased)
+
+func _on_global_unit_purchased(bought_unit: UnitInstance) -> void:
+	if bought_unit == self: return # Don't trigger on self buy (or do? Definition says "When you buy a unit")
+	# Usually "buy another unit". Let's assume another unit for now.
+	
+	# Gonzales: Faction Bond
+	if definition and definition.id == "gonzales":
+		if bought_unit.faction == self.faction:
+			_apply_faction_bond()
+
+func _apply_faction_bond() -> void:
+	print("Faction Bond Triggered for Gonzales!")
+	max_hp += 1
+	hp += 1
+

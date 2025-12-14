@@ -8,6 +8,8 @@ var current_round: int = 1
 var player_team: Array[UnitInstance] = []
 var enemy_team: Array[UnitInstance] = []
 
+signal unit_purchased(unit: UnitInstance)
+
 func generate_enemy_team() -> void:
 	enemy_team.clear()
 	
