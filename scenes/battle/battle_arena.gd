@@ -1,5 +1,5 @@
 extends Control
-
+	
 @onready var label: Label = $Label
 @onready var background: TextureRect = $Background
 @onready var result_label: Label = $UILayer/ResultLabel
@@ -7,29 +7,30 @@ extends Control
 @onready var hp_label: Label = $UILayer/HUD/HPContainer/HPLabel
 @onready var wins_label: Label = $UILayer/HUD/WinsContainer/WinsLabel
 @onready var round_label: Label = $UILayer/HUD/RoundContainer/RoundLabel
+@onready var speed_button: Button = $UILayer/SpeedButton
 
 const FIGHTER_SCENE = preload("res://scenes/battle/fighter.tscn")
 
-var player_fighter: Node2D
-var enemy_fighter: Node2D
+# Visualizer State
+var _active_fighters: Dictionary = {} # Maps unit_id (int) -> Node2D
+var _simulation_result: BattleSimulator.BattleResult
+var playback_speed: float = 1.0
 
-var player_queue: Array[UnitInstance] = []
-var enemy_queue: Array[UnitInstance] = []
-
-var is_battle_active: bool = false
-
-# Starting positions
+# Constants for positioning (keep same as before)
 const LEFT_SPAWN = Vector2(500, 650)
-const RIGHT_SPAWN = Vector2(1420, 650) # Symmetric
-# Combat positions (middle)
-const LEFT_COMBAT_POS = Vector2(700, 650)
-const RIGHT_COMBAT_POS = Vector2(1220, 650)
+const RIGHT_SPAWN = Vector2(1420, 650)
+const LEFT_COMBAT = Vector2(700, 650)
+const RIGHT_COMBAT = Vector2(1220, 650)
 
 func _ready() -> void:
 	_setup_battle()
 	_update_hud()
 	
-	# intro label anim
+	if speed_button:
+		speed_button.pressed.connect(_on_speed_button_pressed)
+		speed_button.text = "Speed: 1x"
+		
+	# Intro animation
 	if label:
 		label.modulate.a = 1.0
 		var tween = create_tween()
@@ -37,326 +38,235 @@ func _ready() -> void:
 		tween.tween_property(label, "modulate:a", 0.0, 2.0)
 		tween.tween_callback(label.hide)
 
+func _exit_tree() -> void:
+	Engine.time_scale = 1.0
 
 func _setup_battle() -> void:
-	# Clone global teams to local queues for this battle instance
-	# Clone global teams to local queues for this battle instance
-	# We use duplicate() on the UnitInstance resource so that modifications (HP, Attack)
-	# during battle do NOT affect the persistent units in GameData.
-	player_queue = []
-	for unit in GameData.player_team:
-		player_queue.append(unit.duplicate())
+	# 1. Run Simulation
+	var sim = BattleSimulator.new()
+	print("Running deterministic simulation...")
+	_simulation_result = sim.simulate(GameData.player_team, GameData.enemy_team)
+	print("Simulation complete. Steps: ", _simulation_result.log.size())
+	print("Winner: ", BattleTypes.Winner.keys()[_simulation_result.winner])
+	
+	# DEBUG: Print all steps
+	print("\n--- BATTLE LOG ---")
+	for i in range(_simulation_result.log.size()):
+		var event = _simulation_result.log[i]
+		var type_name = BattleTypes.EventType.keys()[event.type]
+		print("Step %d: [%s] %s" % [i, type_name, str(event)])
+	print("------------------\n")
+	
+	# 2. Start Playback
+	_play_battle_log()
+
+func _play_battle_log() -> void:
+	# Wait a bit before starting
+	await _wait(1.0)
+	
+	for event in _simulation_result.log:
+		await _process_event(event)
+
+	await _wait(1.0)
+	_show_round_result(_simulation_result.winner)
+
+func _process_event(event: Dictionary) -> void:
+	var type = event.type
+	
+	match type:
+		BattleTypes.EventType.ROUND_START:
+			pass # Just logic marker
+			
+		BattleTypes.EventType.SPAWN_UNIT:
+			await _handle_spawn(event)
+			
+		BattleTypes.EventType.ABILITY_TRIGGER:
+			await _handle_ability_trigger(event)
+			
+		BattleTypes.EventType.ATTACK:
+			await _handle_attack(event)
+			
+		BattleTypes.EventType.DAMAGE:
+			await _handle_damage(event)
+			
+		BattleTypes.EventType.DEATH:
+			await _handle_death(event)
+			
+		BattleTypes.EventType.ROUND_END:
+			pass # End handled by loop finish
+
+func _handle_spawn(event: Dictionary) -> void:
+	var unit_id = event.unit_id
+	var is_player = event.is_player
+	# create_sim_unit doesn't give us the full display data in the event, 
+	# but we need it.
+	# The simulator uses original units. We need to find the definition.
+	# Or, since we track IDs, we can map back? 
+	# SimUnit structure had `definition` and `original_data`.
+	# But we only have the log here.
+	# FIX: Simulator logs should probably contain essential visual data OR we query the Sim.
+	# The event has "unit_name". We can recreate a dummy visual or find it.
+	# Better: Use the name/ID to load the sprite.
+	
+	var fighter = FIGHTER_SCENE.instantiate()
+	fighters_container.add_child(fighter)
+	_active_fighters[unit_id] = fighter
+	
+	# Visual Setup
+	# We need a dummy UnitInstance or modify Fighter to take raw data.
+	# Existing Fighter.setup takes UnitInstance.
+	# Let's reconstruct a temporary UnitInstance for the visual.
+	var dummy_instance = UnitInstance.new()
+	# We need to load definition by Name to get the sprite correctly using Fighter logic
+	# Fighter logic: `unit.definition.id` OR `unit.unit_name` fallback.
+	# The event gives us `unit_name`.
+	dummy_instance.definition = UnitDefinition.new()
+	dummy_instance.definition.unit_name = event.unit_name
+	
+	# Initial HP/ATK from event
+	dummy_instance.hp = event.hp
+	dummy_instance.max_hp = event.max_hp
+	dummy_instance.attack = event.attack
+	
+	fighter.setup(dummy_instance)
+	
+	# Pos
+	if is_player:
+		fighter.position = LEFT_SPAWN
+		fighter.set_facing_left(false)
+	else:
+		fighter.position = RIGHT_SPAWN
+		fighter.set_facing_left(true)
 		
-	enemy_queue = []
-	for unit in GameData.enemy_team:
-		enemy_queue.append(unit.duplicate())
+	# Animate Entrance (Move nicely to combat pos?)
+	# Or just spawn at spawn point. The combat loop moves them.
+	# In Sim, they fight immediately after spawn checks.
+	# We should move them to center if they are the fighters.
 	
-	if player_queue.is_empty():
-		return
+	await get_tree().create_timer(0.3).timeout
 	
-	# Spawn INITIAL units without triggering abilities properly yet
-	# because opponent might be missing for the first one spawned
-	_spawn_next_player_unit(false)
-	_spawn_next_enemy_unit(false)
+	# Move to combat pos if they are the active frontliners?
+	# In Sim, as soon as they spawn they become the fighter.
+	var target_pos = LEFT_COMBAT if is_player else RIGHT_COMBAT
+	var tween = create_tween()
+	tween.tween_property(fighter, "position", target_pos, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	await tween.finished
+
+func _handle_attack(event: Dictionary) -> void:
+	var source_id = event.source
+	var target_id = event.target
 	
-	# Start battle loop after a short delay
-	await get_tree().create_timer(1.5).timeout
+	var source_node = _active_fighters.get(source_id)
+	var target_node = _active_fighters.get(target_id)
 	
-	# Now trigger entrance abilities for the starting pair
-	# We check existence in case something weird happened, but they should be there
-	if player_fighter and enemy_fighter:
-		_trigger_abilities(AbilityTrigger.ENTRANCE, player_fighter, enemy_fighter)
-		_trigger_abilities(AbilityTrigger.ENTRANCE, enemy_fighter, player_fighter)
+	if source_node and target_node:
+		source_node.play_attack_anim(target_node.position)
+		# Don't await full anim here maybe? 
+		# If we wait, it feels turned based. 
+		# If we don't, it feels simultaneous.
+		# Let's wait a tiny bit to stagger start if simultaneous
+		await get_tree().create_timer(0.1).timeout
+
+func _handle_damage(event: Dictionary) -> void:
+	var target_id = event.target
+	var amount = event.amount
+	var new_hp = event.new_hp
+	
+	var node = _active_fighters.get(target_id)
+	if node:
+		node.play_hit_anim()
+		# Update visual stats
+		# Fighter node expects UnitInstance to hold values.
+		# We need to manually update the labels since we are driving this externally.
+		if node.hp_label:
+			node.hp_label.text = str(new_hp)
 		
-		# Handle any instant deaths from entrance abilities (e.g. Jaguarro)
-		_handle_deaths()
+		# Wait for hit impact
+		await get_tree().create_timer(0.2).timeout
+
+func _handle_death(event: Dictionary) -> void:
+	var unit_id = event.unit_id
+	var node = _active_fighters.get(unit_id)
+	
+	if node:
+		# Play death anim? 
+		# Just fade out or pop for now
+		var tween = create_tween()
+		tween.tween_property(node, "modulate:a", 0.0, 0.3)
+		await tween.finished
+		node.queue_free()
+		_active_fighters.erase(unit_id)
+
+func _handle_ability_trigger(event: Dictionary) -> void:
+	var source_id = event.source
+	var node = _active_fighters.get(source_id)
+	if node:
+		var color = Color.GOLD
+		# Simple mapping for VFX based on logic we saw in old arena
+		match event.trigger:
+			BattleTypes.AbilityTrigger.ENTRANCE: color = Color.GOLD
+			BattleTypes.AbilityTrigger.ATTACK: color = Color.RED
+			BattleTypes.AbilityTrigger.KILL: color = Color.GREEN
+			
+		node.play_ability_vfx(color)
 		
-	_start_combat_round()
-
-
-# Constants
-enum AbilityTrigger { ENTRANCE, ATTACK, KILL }
-
-
-func _spawn_next_player_unit(trigger_ability: bool = true) -> void:
-	if player_fighter != null: return # Already have one
-	
-	var unit = player_queue.pop_back()
-	if unit:
-		player_fighter = FIGHTER_SCENE.instantiate()
-		fighters_container.add_child(player_fighter)
-		player_fighter.setup(unit)
-		player_fighter.position = LEFT_SPAWN
-		player_fighter.set_facing_left(false) # Face Right
+		# Show Ability Name?
+		# var ability_name = event.ability_name
+		# Could pop up text
 		
-		if trigger_ability:
-			# Trigger Entrance Ability (Opponent should exist in mid-battle spawns)
-			_trigger_abilities(AbilityTrigger.ENTRANCE, player_fighter, enemy_fighter)
-
-
-func _spawn_next_enemy_unit(trigger_ability: bool = true) -> void:
-	if enemy_fighter != null: return
-	
-	var unit = enemy_queue.pop_back()
-	if unit:
-		enemy_fighter = FIGHTER_SCENE.instantiate()
-		fighters_container.add_child(enemy_fighter)
-		enemy_fighter.setup(unit)
-		enemy_fighter.position = RIGHT_SPAWN
-		enemy_fighter.set_facing_left(true) # Face Left
-		
-		if trigger_ability:
-			# Trigger Entrance Ability
-			_trigger_abilities(AbilityTrigger.ENTRANCE, enemy_fighter, player_fighter)
-
-
-func _trigger_abilities(trigger: AbilityTrigger, source: Node2D, target: Node2D) -> void:
-	if not source or not source.unit_instance: return
-	
-	var data = source.unit_instance
-	var ability_name = data.ability_name.replace(" ", "")
-	var trig_happened = false
-	
-	# Match by Name or specific IDs if we had them. Using name for now.
-	match trigger:
-		AbilityTrigger.ENTRANCE:
-			if data.unit_name == "Gonzales":
-				# +1/+2 to all Garage tier units
-				trig_happened = true
-				source.play_ability_vfx(Color.GOLD)
-				
-				# Determine which queue belongs to this source
-				var allies_queue = player_queue if source == player_fighter else enemy_queue
-				
-				for ally in allies_queue:
-					if ally.tier == 2: # Garage Tier
-						ally.attack += 1
-						ally.hp += 2
-						ally.max_hp += 2
-						
-			elif data.unit_name == "Dolores":
-				# +1/+1 Self
-				trig_happened = true
-				source.play_ability_vfx(Color.MAGENTA)
-				data.attack += 1
-				data.hp += 1
-				data.max_hp += 1
-				source.update_stats_display()
-				
-			elif data.unit_name == "El Jaguarro":
-				# Deal 4 dmg to enemy
-				if target:
-					trig_happened = true
-					source.play_ability_vfx(Color.ORANGE_RED)
-					target.play_hit_anim()
-					target.unit_instance.hp -= 4
-					target.update_stats_display()
-					# Note: Death check will happen in main loop or we need to handle it here?
-					# The main loop checks for null fighters. Need to clean up here if dead?
-					# Better let main loop handle destruction, but we can visually show it.
-					
-		AbilityTrigger.ATTACK:
-			if data.unit_name == "El Torro":
-				# +1 Attack
-				trig_happened = true
-				source.play_ability_vfx(Color.RED)
-				data.attack += 1
-				source.update_stats_display()
-				
-		AbilityTrigger.KILL:
-			if data.unit_name == "Marco":
-				# +1/+1 after kill
-				trig_happened = true
-				source.play_ability_vfx(Color.GREEN)
-				data.attack += 1
-				data.hp += 1
-				data.max_hp += 1 # Permanent? Assuming yes for autobattler
-				source.update_stats_display()
-
-	if trig_happened:
 		await get_tree().create_timer(0.5).timeout
 
-
-func _start_combat_round() -> void:
-	is_battle_active = true
-	_battle_loop()
-
-
-func _battle_loop() -> void:
-	if not is_battle_active: return
+func _show_round_result(winner: BattleTypes.Winner) -> void:
+	var text = ""
+	var color = Color.WHITE
 	
-	# Quick check for death from Entrance abilities
-	_handle_deaths()
-	
-	# Check Win/Loss Condition
-	if player_fighter == null and player_queue.is_empty():
-		if enemy_fighter == null and enemy_queue.is_empty():
-			_end_game("DRAW", Color.WHITE)
-		else:
-			_end_game("ROUND LOST", Color.RED)
-		return
-	elif enemy_fighter == null and enemy_queue.is_empty() and player_fighter != null:
-		_end_game("ROUND WON", Color.GREEN)
-		return
-		
-	# Spawn if missing
-	if player_fighter == null:
-		_spawn_next_player_unit()
-		# Re-check death/win in case spawn ability killed someone
-		await get_tree().process_frame # Allow UI to update
-		_handle_deaths()
-		if enemy_fighter == null and enemy_queue.is_empty() and player_fighter != null:
-			_end_game("ROUND WON", Color.GREEN)
-			return
+	match winner:
+		BattleTypes.Winner.PLAYER:
+			text = "ROUND WON"
+			color = Color.GREEN
+			GameData.player_wins += 1
+		BattleTypes.Winner.ENEMY:
+			text = "ROUND LOST"
+			color = Color.RED
+			GameData.player_lives -= 1
+		BattleTypes.Winner.DRAW:
+			text = "DRAW"
+			color = Color.WHITE
 			
-	if enemy_fighter == null:
-		_spawn_next_enemy_unit()
-		await get_tree().process_frame
-		_handle_deaths()
-		if player_fighter == null and player_queue.is_empty():
-			if enemy_fighter == null and enemy_queue.is_empty(): _end_game("DRAW", Color.WHITE)
-			else: _end_game("ROUND LOST", Color.RED)
-			return
-		
-	# Wait for spawns
-	if player_fighter == null or enemy_fighter == null:
-		# Loop to catch next spawn or win
-		await get_tree().process_frame
-		_battle_loop()
-		return
-		
-	# Move to combat positions (step forward)
-	var tween = create_tween()
-	tween.parallel().tween_property(player_fighter, "position", LEFT_COMBAT_POS, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.parallel().tween_property(enemy_fighter, "position", RIGHT_COMBAT_POS, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	await tween.finished
-	
-	# Attack Phase
-	await get_tree().create_timer(0.2).timeout
-	
-	# Trigger Attack Abilities
-	if player_fighter and enemy_fighter:
-		_trigger_abilities(AbilityTrigger.ATTACK, player_fighter, enemy_fighter)
-		_trigger_abilities(AbilityTrigger.ATTACK, enemy_fighter, player_fighter)
-		await get_tree().create_timer(0.3).timeout # Wait for buffs
-	
-	# Play animations
-	if player_fighter and enemy_fighter:
-		player_fighter.play_attack_anim(enemy_fighter.position)
-		enemy_fighter.play_attack_anim(player_fighter.position)
-		
-		# Wait for impact
-		await get_tree().create_timer(0.2).timeout
-		
-		# Apply Damage
-		if player_fighter and enemy_fighter:
-			player_fighter.play_hit_anim()
-			enemy_fighter.play_hit_anim()
-			
-			var p_atk = player_fighter.unit_instance.attack
-			var e_atk = enemy_fighter.unit_instance.attack
-			
-			player_fighter.unit_instance.hp -= e_atk
-			enemy_fighter.unit_instance.hp -= p_atk
-			
-			# Update HP/ATK display
-			player_fighter.update_stats_display()
-			enemy_fighter.update_stats_display()
-			
-			# Check Deaths
-			var p_died = player_fighter.unit_instance.hp <= 0
-			var e_died = enemy_fighter.unit_instance.hp <= 0
-			
-			# Trigger Kill Abilities
-			if p_died and not e_died:
-				_trigger_abilities(AbilityTrigger.KILL, enemy_fighter, player_fighter)
-			if e_died and not p_died:
-				_trigger_abilities(AbilityTrigger.KILL, player_fighter, enemy_fighter)
-			
-			# Handle removal
-			_handle_deaths()
-	
-	# Step back if survived
-	if player_fighter or enemy_fighter:
-		await get_tree().create_timer(0.3).timeout
-		var step_back_tween = create_tween()
-		if player_fighter:
-			step_back_tween.parallel().tween_property(player_fighter, "position", LEFT_SPAWN, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
-		if enemy_fighter:
-			step_back_tween.parallel().tween_property(enemy_fighter, "position", RIGHT_SPAWN, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
-		await step_back_tween.finished
-				
-	# Loop with delay
-	await get_tree().create_timer(0.5).timeout
-	_battle_loop()
-
-
-func _handle_deaths() -> void:
-	if player_fighter and player_fighter.unit_instance.hp <= 0:
-		player_fighter.queue_free()
-		player_fighter = null
-		
-	if enemy_fighter and enemy_fighter.unit_instance.hp <= 0:
-		enemy_fighter.queue_free()
-		enemy_fighter = null
-
-
-func _end_game(text: String, color: Color) -> void:
-	is_battle_active = false
-	
-	# Update game state based on result
-	if text == "ROUND WON":
-		GameData.player_wins += 1
-	elif text == "ROUND LOST":
-		GameData.player_lives -= 1
-	# DRAW: no changes to lives or wins
-	
-	# Always increment round counter
 	GameData.current_round += 1
-	
 	_update_hud()
 	
-	# Check Game Over Conditions
-	var game_over_text = ""
-	var game_over_color = Color.WHITE
-	var is_game_over = false
+	# Game Over Checks (Sim matches GameData logic?)
+	# Wait, Sim calculates winner of the ROUND.
+	# Game Over (Wins >= 10 or Lives <= 0) is Meta-Game logic.
+	# We handle it here.
 	
+	var game_over = false
 	if GameData.player_wins >= 10:
-		is_game_over = true
-		game_over_text = "YOU ARE THE WORLD CHAMPION"
-		game_over_color = Color(1.0, 0.84, 0.0) # Gold
+		text = "YOU ARE THE WORLD CHAMPION"
+		color = Color.GOLD
+		game_over = true
 	elif GameData.player_lives <= 0:
-		is_game_over = true
-		game_over_text = "YOU LOST"
-		game_over_color = Color(0.8, 0.1, 0.1) # Red
+		text = "YOU LOST"
+		color = Color.RED
+		game_over = true
 		
 	if result_label:
-		# If game over, override the round result text
-		if is_game_over:
-			result_label.text = game_over_text
-			result_label.add_theme_color_override("font_color", game_over_color)
-		else:
-			result_label.text = text
-			result_label.add_theme_color_override("font_color", color)
-			
+		result_label.text = text
+		result_label.add_theme_color_override("font_color", color)
 		result_label.visible = true
 		
-		# Wait time depends on if it's game over (longer wait to read)
-		var wait_time = 4.0 if is_game_over else 2.0
-		await get_tree().create_timer(wait_time).timeout
-		
-		if is_game_over:
-			# Reset Game
-			GameData.player_lives = 5
-			GameData.player_wins = 0
-			GameData.current_round = 1
-			GameData.player_team.clear() # Clear team on reset? Or keep it? Usually hard reset.
-			# Let's clear the team for a fresh run
-			GameData.player_team.clear()
-		
-		# Return to shop
-		get_tree().change_scene_to_file("res://scenes/shop/shop.tscn")
-
+	var wait_time = 4.0 if game_over else 2.0
+	await get_tree().create_timer(wait_time).timeout
+	
+	if game_over:
+		# Reset
+		GameData.player_lives = 5
+		GameData.player_wins = 0
+		GameData.current_round = 1
+		GameData.player_team.clear()
+	
+	get_tree().change_scene_to_file("res://scenes/shop/shop.tscn")
 
 func _update_hud() -> void:
 	if hp_label:
@@ -365,3 +275,21 @@ func _update_hud() -> void:
 		wins_label.text = str(GameData.player_wins)
 	if round_label:
 		round_label.text = str(GameData.current_round)
+
+func _on_speed_button_pressed() -> void:
+	if playback_speed == 1.0:
+		playback_speed = 2.0
+	elif playback_speed == 2.0:
+		playback_speed = 10.0
+	else:
+		playback_speed = 1.0
+		
+	Engine.time_scale = playback_speed
+	
+	if speed_button:
+		speed_button.text = "Speed: %sx" % str(playback_speed)
+
+# Helper for speed-based delay
+func _wait(seconds: float) -> void:
+	# With Engine.time_scale, we don't need manual division
+	await get_tree().create_timer(seconds).timeout
