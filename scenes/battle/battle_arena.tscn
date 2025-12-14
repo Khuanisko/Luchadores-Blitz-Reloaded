@@ -138,3 +138,14 @@ theme_override_font_sizes/font_size = 32
 text = "1"
 vertical_alignment = 1
 
+[node name="SpeedButton" type="Button" parent="UILayer"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -160.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 80.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 32
+text = "Speed: 1x"
