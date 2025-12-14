@@ -57,6 +57,9 @@ func simulate(player_team: Array[UnitInstance], enemy_team: Array[UnitInstance])
 	
 	_log({ "type": BattleTypes.EventType.ROUND_START })
 	
+	# 0. Start of Battle Triggers (Opening Bell etc.)
+	_resolve_start_of_battle()
+	
 	# Main Battle Loop
 	var max_loops = 100 # Safety break
 	var loop_count = 0
@@ -87,6 +90,32 @@ func simulate(player_team: Array[UnitInstance], enemy_team: Array[UnitInstance])
 	result.log = _battle_log
 	_log({ "type": BattleTypes.EventType.ROUND_END, "winner": result.winner })
 	return result
+
+	return result
+
+func _resolve_start_of_battle():
+	var triggers = []
+	
+	# Collect from Player Queue
+	for unit in _player_queue:
+		if unit.definition and unit.definition.ability_name == "Opening Bell":
+			triggers.append({ "unit": unit, "attack": unit.attack, "tie": randf() })
+			
+	# Collect from Enemy Queue
+	for unit in _enemy_queue:
+		if unit.definition and unit.definition.ability_name == "Opening Bell":
+			triggers.append({ "unit": unit, "attack": unit.attack, "tie": randf() })
+			
+	# Sort: Attack Descending, then Random Tie-breaker
+	triggers.sort_custom(func(a, b):
+		if a.attack != b.attack:
+			return a.attack > b.attack # Higher attack first
+		return a.tie > b.tie # Random check
+	)
+	
+	# Execute
+	for t in triggers:
+		_try_ability(BattleTypes.AbilityTrigger.START_OF_BATTLE, t.unit, null)
 
 # --- Internal Logic ---
 
@@ -122,6 +151,7 @@ func _check_spawn(is_player: bool) -> bool:
 				"unit_id": next_unit.id,
 				"is_player": is_player,
 				"unit_name": next_unit.original_data.unit_name,
+				"definition_id": next_unit.definition.id if next_unit.definition else "",
 				"hp": next_unit.hp,
 				"max_hp": next_unit.max_hp,
 				"attack": next_unit.attack
@@ -203,6 +233,19 @@ func _apply_damage(target: SimUnit, amount: int, source: SimUnit):
 		"new_hp": target.hp,
 		"source": source.id # Attribution
 	})
+	
+	_check_payback_triggers(target)
+
+func _check_payback_triggers(victim: SimUnit):
+	# Payback triggers for the unit directly BEHIND the victim in the queue
+	var queue = _player_queue if victim.is_player else _enemy_queue
+	
+	if not queue.is_empty():
+		# The unit "in front" of the queue is the one right behind the fighter.
+		# Since we pop from back for spawning, back() is the front of the line.
+		var friend_behind = queue.back()
+		if friend_behind:
+			_try_ability(BattleTypes.AbilityTrigger.FRIEND_TOOK_DAMAGE, friend_behind, victim)
 
 func _handle_death(unit: SimUnit):
 	if unit == _player_fighter:
@@ -218,7 +261,6 @@ func _handle_death(unit: SimUnit):
 func _try_ability(trigger: BattleTypes.AbilityTrigger, source: SimUnit, target: SimUnit):
 	if source == null: return
 	
-	var name = source.original_data.unit_name
 	var definition = source.definition
 	var success = false
 	var ability_log = {
@@ -227,61 +269,55 @@ func _try_ability(trigger: BattleTypes.AbilityTrigger, source: SimUnit, target: 
 		"source": source.id,
 		"ability_name": definition.ability_name if definition else "Unknown"
 	}
-	
-	# Hardcoded logic mirroring 'battle_arena.gd'
-	# In the future, this should be moved to a robust Effect System or Strategy Pattern
+	var ability_name = definition.ability_name if definition else ""
 	
 	match trigger:
+		
+		BattleTypes.AbilityTrigger.START_OF_BATTLE:
+			if ability_name == "Opening Bell":
+				# +2 HP to unit in front
+				var queue = _player_queue if source.is_player else _enemy_queue
+				var my_idx = queue.find(source)
+				
+				# Queue is [Back ... Front]. So "In Front" means index + 1
+				var target_idx = my_idx + 1
+				
+				if target_idx < queue.size():
+					var friend_in_front = queue[target_idx]
+					friend_in_front.max_hp += 2
+					friend_in_front.hp += 2
+					
+					# We should probably log the buff effect? 
+					# The generic _log(ability_log) at end handles the trigger event.
+					# But we might want to log the stat change? 
+					# For now, simplistic implementation.
+					success = true
+				else:
+					# No one in front (self is front). Do nothing.
+					pass
 
 		BattleTypes.AbilityTrigger.ENTRANCE:
-			if name == "Gonzales":
-				# Buff allies in Garage tier
-				# var queue = _player_queue if source.is_player else _enemy_queue
-				# Note: queue contains units waiting to spawn
-				# The source just spawned, so it's not in the queue anymore.
-				# What about units already on board? None, because it's 1v1.
+			pass 
+			# Legacy Entrance logic removed/commented out previously.
+			# If we want to implement "Opening Bell" (Marco) or "Entrance" (El Jaguarro) here, we can.
+			# But for now, just cleaning up name checks if any remain active.
 				
-				# Buff units in queue
-				# var count = 0
-				# for ally in queue:
-				# 	if ally.definition and ally.definition.tier == 2:
-				# 		ally.attack += 1
-				# 		ally.hp += 2
-				# 		ally.max_hp += 2
-				# 		count += 1
-				# if count > 0: success = true
-				pass
-
-			elif name == "Dolores":
-				# Self Buff
-				# source.attack += 1
-				# source.hp += 1
-				# source.max_hp += 1
-				# success = true
-				pass
-				
-			elif name == "El Jaguarro":
-				if target:
-					# Deal 4 dmg
-					# _apply_damage(target, 4, source)
-					# success = true
-					pass
-					
 		BattleTypes.AbilityTrigger.ATTACK:
-			if name == "El Torro":
-				# +1 Attack
-				# source.attack += 1
-				# success = true
-				pass
+			if ability_name == "Combo":
+				# El Torro: Gains +1 attack while attacking
+				source.attack += 1
+				success = true
+				
+		BattleTypes.AbilityTrigger.FRIEND_TOOK_DAMAGE:
+			if ability_name == "Payback":
+				# Dolores: Gain +1 Attack
+				source.attack += 1
+				success = true
 				
 		BattleTypes.AbilityTrigger.KILL:
-			if name == "Marco":
-				# +1/+1
-				# source.attack += 1
-				# source.hp += 1
-				# source.max_hp += 1
-				# success = true
-				pass
+			pass
+			# Legacy Marco logic was here. His actual ability "Opening Bell" is Start of Battle (Entrance).
+			# We can implement it if needed, but primary focus is Decoupling Payback.
 	
 	if success:
 		_log(ability_log)

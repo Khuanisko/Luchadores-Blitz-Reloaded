@@ -16,7 +16,11 @@ func setup(unit: UnitInstance) -> void:
 	# Try to load formatted battle sprite based on ID
 	# We expect: assets/sprites/characters/<id>.png
 	# UnitInstance definition has 'id' (e.g. "gonzales")
-	var file_name = unit.definition.id if unit.definition else unit.unit_name.to_lower().replace(" ", "")
+	var file_name = ""
+	if unit.definition and not unit.definition.id.is_empty():
+		file_name = unit.definition.id
+	else:
+		file_name = unit.unit_name.to_lower().replace(" ", "")
 	
 	var texture_path = "res://assets/sprites/characters/" + file_name + ".png"
 	
@@ -31,7 +35,7 @@ func setup(unit: UnitInstance) -> void:
 			# Fallback to portrait (box) if nothing else
 			sprite.texture = unit.unit_texture
 		else:
-			print("Character texture not found for: ", unit.unit_name)
+			print("Character texture not found for: ", unit.unit_name, ". Tried path: ", texture_path)
 	
 	# Scale is set in scene
 	sprite.position = Vector2.ZERO

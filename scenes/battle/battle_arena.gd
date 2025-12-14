@@ -122,6 +122,8 @@ func _handle_spawn(event: Dictionary) -> void:
 	# The event gives us `unit_name`.
 	dummy_instance.definition = UnitDefinition.new()
 	dummy_instance.definition.unit_name = event.unit_name
+	if "definition_id" in event:
+		dummy_instance.definition.id = event.definition_id
 	
 	# Initial HP/ATK from event
 	dummy_instance.hp = event.hp

@@ -13,9 +13,11 @@ enum EventType {
 
 # Ability Triggers (Moved from BattleArena to global types)
 enum AbilityTrigger {
+	START_OF_BATTLE,
 	ENTRANCE,
 	ATTACK,
-	KILL
+	KILL,
+	FRIEND_TOOK_DAMAGE
 }
 
 # Winner Enum

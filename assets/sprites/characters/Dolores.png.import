@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d3xs8l8h0upc0"
-path="res://.godot/imported/Dolores.png-145f7003990c4f4caef4b488220ea036.ctex"
+uid="uid://co2gpybvy152"
+path="res://.godot/imported/dolores.png-b5d2a95aace09be58d3487e0a53e9b63.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/characters/Dolores.png"
-dest_files=["res://.godot/imported/Dolores.png-145f7003990c4f4caef4b488220ea036.ctex"]
+source_file="res://assets/sprites/characters/dolores.png"
+dest_files=["res://.godot/imported/dolores.png-b5d2a95aace09be58d3487e0a53e9b63.ctex"]
 
 [params]
 
