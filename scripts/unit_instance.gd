@@ -30,6 +30,9 @@ var unit_texture: Texture2D:
 var cost: int:
 	get: return definition.cost if definition else 0
 
+var sell_value: int:
+	get: return definition.sell_value if definition else 0
+
 var tier: int:
 	get: return definition.tier if definition else 1
 
@@ -85,22 +88,28 @@ func level_up() -> void:
 func connect_shop_signals() -> void:
 	if not GameData.unit_purchased.is_connected(_on_global_unit_purchased):
 		GameData.unit_purchased.connect(_on_global_unit_purchased)
+	if not GameData.gold_earned.is_connected(_on_gold_earned):
+		GameData.gold_earned.connect(_on_gold_earned)
 
 func disconnect_shop_signals() -> void:
 	if GameData.unit_purchased.is_connected(_on_global_unit_purchased):
 		GameData.unit_purchased.disconnect(_on_global_unit_purchased)
+	if GameData.gold_earned.is_connected(_on_gold_earned):
+		GameData.gold_earned.disconnect(_on_gold_earned)
 
 func _on_global_unit_purchased(bought_unit: UnitInstance) -> void:
-	if bought_unit == self: return # Don't trigger on self buy (or do? Definition says "When you buy a unit")
-	# Usually "buy another unit". Let's assume another unit for now.
+	if bought_unit == self: return 
 	
-	# Gonzales: Faction Bond
-	if definition and definition.id == "gonzales":
-		if bought_unit.faction == self.faction:
-			_apply_faction_bond()
+	# Resource-based Ability Trigger
+	if definition and definition.ability_resource:
+		if definition.ability_resource.has_method("execute"):
+			# Pass context
+			var context = { "trigger": "unit_purchased", "bought_unit": bought_unit }
+			definition.ability_resource.execute(self, context)
 
-func _apply_faction_bond() -> void:
-	print("Faction Bond Triggered for Gonzales!")
-	max_hp += 1
-	hp += 1
+func _on_gold_earned(_amount: int) -> void:
+	if definition and definition.ability_resource:
+		if definition.ability_resource.has_method("execute"):
+			var context = { "trigger": "gold_earned", "amount": _amount }
+			definition.ability_resource.execute(self, context)
 

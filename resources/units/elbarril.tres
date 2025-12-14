@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="UnitDefinition" load_steps=3 format=3 uid="uid://djg7enjak2asn"]
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=4 format=3 uid="uid://djg7enjak2asn"]
 
 [ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_5x1v0"]
 [ext_resource type="Texture2D" uid="uid://ccs1d0cmg2l64" path="res://assets/sprites/character_boxes/elbarril.png" id="1_mymva"]
+[ext_resource type="Resource" path="res://resources/abilities/el_barril_prize.tres" id="3_prize"]
 
 [resource]
 script = ExtResource("1_5x1v0")
@@ -13,4 +14,5 @@ faction = "Los Banditos"
 heel_face = "Heel"
 ability_name = "Prize Fighter"
 ability_description = "Gain [b]  +1 [/b] Health"
+ability_resource = ExtResource("3_prize")
 metadata/_custom_type_script = "uid://7upuukcophge"
