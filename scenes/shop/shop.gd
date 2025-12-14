@@ -9,12 +9,12 @@ const UNIT_SLOT_SCENE = preload("res://scenes/shop/unit_slot.tscn")
 const STARTING_GOLD: int = 1000
 const UNIT_COST: int = 3
 const REROLL_COST: int = 1
-const SELL_VALUE: int = 1
-var gold: int = STARTING_GOLD
+# Gold moved to GameData
 
 # Shop Data
 @export var available_units_pool: Array[UnitDefinition] = []
 var shop_units: Array[UnitInstance] = []
+var previous_gold: int = 1000
 
 @onready var shop_container: HBoxContainer = $ShopContainer
 @onready var shopkeeper: Control = $Shopkeeper
@@ -28,6 +28,8 @@ var shop_units: Array[UnitInstance] = []
 
 
 func _ready() -> void:
+	GameData.reset_gold()
+	previous_gold = GameData.gold
 	_ensure_pool_loaded()
 	_generate_shop_items()
 	_populate_shop_ui()
@@ -95,11 +97,13 @@ func _connect_signals() -> void:
 		fight_button.pressed.connect(_on_fight_pressed)
 	if team_board:
 		team_board.unit_sold.connect(_on_unit_sold)
+	
+	GameData.gold_changed.connect(_on_gold_changed)
 
 
 func _on_unit_purchased(unit: UnitInstance, source_slot: Control) -> void:
 	# Check if player can afford
-	if gold < UNIT_COST:
+	if GameData.gold < UNIT_COST:
 		print("Not enough gold!")
 		return
 		
@@ -109,7 +113,7 @@ func _on_unit_purchased(unit: UnitInstance, source_slot: Control) -> void:
 		return
 	
 	# Spend gold
-	gold -= UNIT_COST
+	GameData.spend_gold(UNIT_COST)
 	_update_gold_display()
 	
 	# Add unit to team board
@@ -131,8 +135,8 @@ func _on_unit_purchased(unit: UnitInstance, source_slot: Control) -> void:
 
 
 func _on_reroll_pressed() -> void:
-	if gold >= REROLL_COST:
-		gold -= REROLL_COST
+	if GameData.gold >= REROLL_COST:
+		GameData.spend_gold(REROLL_COST)
 		_update_gold_display()
 		_reroll_shop()
 	else:
@@ -145,13 +149,53 @@ func _reroll_shop() -> void:
 	print("Shop rerolled!")
 
 
+func _on_gold_changed(new_amount: int) -> void:
+	var diff = new_amount - previous_gold
+	previous_gold = new_amount
+	
+	if diff != 0:
+		_show_gold_indicator(diff)
+		
+	_update_gold_display()
+
+
+func _show_gold_indicator(amount: int) -> void:
+	if not gold_label: return
+	
+	var label = Label.new()
+	var text = str(amount)
+	var color = Color.GREEN
+	
+	if amount > 0:
+		text = "+" + text
+	else:
+		color = Color.RED
+		
+	label.text = text
+	label.modulate = color
+	label.add_theme_font_size_override("font_size", 24)
+	
+	# Position below/near the gold label
+	# Since gold_label might be in a container, we add this to the Shop root or a known container
+	# and use global position.
+	add_child(label)
+	label.global_position = gold_label.global_position + Vector2(20, 30) # Offset below
+	
+	# Animation
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(label, "position:y", label.position.y + 30, 1.0).from_current()
+	tween.tween_property(label, "modulate:a", 0.0, 1.0)
+	tween.chain().tween_callback(label.queue_free)
+
+
 func _update_gold_display() -> void:
 	if gold_label:
-		gold_label.text = "💰 %d" % gold
+		gold_label.text = "💰 %d" % GameData.gold
 	# Update reroll button to show cost
 	if reroll_button:
 		reroll_button.text = "🎲 REROLL (-%d)" % REROLL_COST
-		reroll_button.disabled = gold < REROLL_COST
+		reroll_button.disabled = GameData.gold < REROLL_COST
 
 
 func _on_unit_sold(unit: UnitInstance, _source_slot: Control) -> void:
@@ -159,10 +203,11 @@ func _on_unit_sold(unit: UnitInstance, _source_slot: Control) -> void:
 	unit.disconnect_shop_signals()
 	
 	# Add gold
-	gold += SELL_VALUE
+	var profit = unit.sell_value
+	GameData.gain_gold(profit)
 	_update_gold_display()
 	_update_fight_button()
-	print("Sold: ", unit.unit_name, " for ", SELL_VALUE, " gold")
+	print("Sold: ", unit.unit_name, " for ", profit, " gold")
 
 
 func _update_fight_button() -> void:

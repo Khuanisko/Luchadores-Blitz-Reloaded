@@ -10,6 +10,7 @@ extends Resource
 @export var base_hp: int = 1
 @export var base_attack: int = 1
 @export var cost: int = 3
+@export var sell_value: int = 1
 @export var tier: int = 1
 
 @export_group("Traits")
@@ -20,3 +21,4 @@ extends Resource
 @export_group("Ability")
 @export var ability_name: String = ""
 @export_multiline var ability_description: String = ""
+@export var ability_resource: Resource

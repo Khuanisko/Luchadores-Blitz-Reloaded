@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="UnitDefinition" load_steps=3 format=3 uid="uid://b11wrm0mqcn57"]
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=4 format=3 uid="uid://b11wrm0mqcn57"]
 
 [ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_p6uxs"]
 [ext_resource type="Texture2D" uid="uid://bx711rg3ckvgk" path="res://assets/sprites/character_boxes/donpedro.png" id="1_tfnpo"]
+[ext_resource type="Resource" path="res://resources/abilities/don_pedro_bond.tres" id="2_bond"]
 
 [resource]
 script = ExtResource("1_p6uxs")
@@ -14,4 +15,5 @@ faction = "Los Banditos"
 heel_face = "Heel"
 ability_name = "Faction Bond"
 ability_description = "Gain 1 gold"
+ability_resource = ExtResource("2_bond")
 metadata/_custom_type_script = "uid://7upuukcophge"

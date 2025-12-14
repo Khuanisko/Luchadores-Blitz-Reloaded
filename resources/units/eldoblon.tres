@@ -10,6 +10,7 @@ unit_name = "El Doblon"
 portrait = ExtResource("1_qj2yx")
 base_hp = 2
 base_attack = 2
+sell_value = 3
 unit_class = "High Flyer"
 faction = "Los Banditos"
 heel_face = "Heel"

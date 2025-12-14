@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="UnitDefinition" load_steps=3 format=3 uid="uid://03eo45j5skjt"]
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=4 format=3 uid="uid://03eo45j5skjt"]
 
 [ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://b1yx4c4gvvyhv" path="res://assets/sprites/character_boxes/gonzales.png" id="2_tex"]
+[ext_resource type="Resource" path="res://resources/abilities/gonzales_bond.tres" id="3_bond"]
 
 [resource]
 script = ExtResource("1_script")
@@ -14,3 +15,4 @@ unit_class = "Power House"
 faction = "OG's"
 ability_name = "Faction Bond"
 ability_description = "Gains [b] +1 [/b] health"
+ability_resource = ExtResource("3_bond")

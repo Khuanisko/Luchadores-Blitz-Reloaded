@@ -8,7 +8,28 @@ var current_round: int = 1
 var player_team: Array[UnitInstance] = []
 var enemy_team: Array[UnitInstance] = []
 
+
+
+const STARTING_GOLD: int = 1000
+var gold: int = STARTING_GOLD
+signal gold_changed(new_amount: int)
+signal gold_earned(amount: int)
 signal unit_purchased(unit: UnitInstance)
+
+func gain_gold(amount: int) -> void:
+	if amount <= 0: return
+	gold += amount
+	gold_changed.emit(gold)
+	gold_earned.emit(amount)
+
+func spend_gold(amount: int) -> void:
+	if amount <= 0: return
+	gold -= amount
+	gold_changed.emit(gold)
+
+func reset_gold() -> void:
+	gold = STARTING_GOLD
+	gold_changed.emit(gold)
 
 func generate_enemy_team() -> void:
 	enemy_team.clear()
