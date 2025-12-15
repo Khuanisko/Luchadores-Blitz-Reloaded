@@ -17,7 +17,10 @@ enum AbilityTrigger {
 	ENTRANCE,
 	ATTACK,
 	KILL,
-	FRIEND_TOOK_DAMAGE
+	FRIEND_TOOK_DAMAGE,
+	DEATH,
+	ON_KO,
+	ON_TAG_IN
 }
 
 # Winner Enum

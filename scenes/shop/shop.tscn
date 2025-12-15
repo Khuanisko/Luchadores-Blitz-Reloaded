@@ -17,7 +17,7 @@
 [ext_resource type="Resource" uid="uid://darnfeaad1d1r" path="res://resources/units/eltornado.tres" id="9_toxgp"]
 [ext_resource type="Resource" uid="uid://bk8082hi6hobq" path="res://resources/units/lavibora.tres" id="10_u2jek"]
 [ext_resource type="Resource" uid="uid://46bb3wf4u04e" path="res://resources/units/littledave.tres" id="11_bnu54"]
-[ext_resource type="Resource" uid="uid://fb548qxklffc" path="res://resources/units/perrorabioso.tres" id="12_noimi"]
+[ext_resource type="Resource" uid="uid://c7t45y0n1g7d" path="res://resources/units/perrorabioso.tres" id="12_noimi"]
 
 [node name="Shop" type="Control"]
 layout_mode = 3

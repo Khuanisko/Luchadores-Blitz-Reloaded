@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=2 format=3 uid="uid://ngryfan0000"]
+
+[ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_unitdef"]
+
+[resource]
+script = ExtResource("1_unitdef")
+id = "angry_fan"
+unit_name = "Angry Fan"
+cost = 0
+sell_value = 0
+unit_class = "Fan"

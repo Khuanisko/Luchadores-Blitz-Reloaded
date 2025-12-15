@@ -16,8 +16,9 @@ class SimUnit:
 	var id: int # Unique ID for this battle instance to track in logs
 	var is_player: bool
 	var definition: UnitDefinition # Quick access
+	var is_summon: bool = false
 	
-	func _init(unit: UnitInstance, _id: int, _is_player: bool):
+	func _init(unit: UnitInstance, _id: int, _is_player: bool, _is_summon: bool = false):
 		original_data = unit
 		hp = unit.hp
 		max_hp = unit.max_hp
@@ -68,8 +69,45 @@ func simulate(player_team: Array[UnitInstance], enemy_team: Array[UnitInstance])
 		loop_count += 1
 		
 		# 1. Spawn Step
+		# 1. Spawn Step
 		var p_spawned = _check_spawn(true)
 		var e_spawned = _check_spawn(false)
+		
+		# Resolving ON_TAG_IN (Entrance) Triggers
+		# Collect triggers from newly spawned units
+		if p_spawned or e_spawned:
+			var tag_triggers = []
+			
+			if p_spawned:
+				# Opponent is _enemy_fighter (could be newly spawned)
+				# Check legacy Entrance if needed, or use ON_TAG_IN directly
+				_try_ability(BattleTypes.AbilityTrigger.ENTRANCE, p_spawned, _enemy_fighter) # Legacy check
+				if _calculate_ability_trigger_potential(p_spawned, BattleTypes.AbilityTrigger.ON_TAG_IN):
+					tag_triggers.append({"source": p_spawned, "target": _enemy_fighter})
+					
+			if e_spawned:
+				_try_ability(BattleTypes.AbilityTrigger.ENTRANCE, e_spawned, _player_fighter) # Legacy check
+				if _calculate_ability_trigger_potential(e_spawned, BattleTypes.AbilityTrigger.ON_TAG_IN):
+					tag_triggers.append({"source": e_spawned, "target": _player_fighter})
+			
+			# Sort simultaneous triggers by Attack Descending, then Random
+			if tag_triggers.size() > 1:
+				tag_triggers.sort_custom(func(a, b):
+					var a_atk = a.source.attack
+					var b_atk = b.source.attack
+					if a_atk != b_atk:
+						return a_atk > b_atk
+					return randf() > 0.5
+				)
+				
+			for t in tag_triggers:
+				_try_ability(BattleTypes.AbilityTrigger.ON_TAG_IN, t.source, t.target)
+				
+		# Fix Zombie Bug: Check for deaths immediately after Entrance abilities
+		if _player_fighter and _player_fighter.hp <= 0:
+			_handle_death(_player_fighter)
+		if _enemy_fighter and _enemy_fighter.hp <= 0:
+			_handle_death(_enemy_fighter)
 		
 		# 2. Check Win Condition immediately after potential spawns
 		var status = _check_winner()
@@ -127,22 +165,24 @@ func _reset():
 	_player_fighter = null
 	_enemy_fighter = null
 
-func _create_sim_unit(unit: UnitInstance, is_player: bool) -> SimUnit:
-	var sim = SimUnit.new(unit, _unit_id_counter, is_player)
+func _create_sim_unit(unit: UnitInstance, is_player: bool, is_summon: bool = false) -> SimUnit:
+	var sim = SimUnit.new(unit, _unit_id_counter, is_player, is_summon)
 	_unit_id_counter += 1
 	return sim
 
 func _log(event: Dictionary):
 	_battle_log.append(event)
 
-func _check_spawn(is_player: bool) -> bool:
+	return null
+		
+func _check_spawn(is_player: bool) -> SimUnit:
 	var fighter = _player_fighter if is_player else _enemy_fighter
 	
 	if fighter == null:
 		var queue = _player_queue if is_player else _enemy_queue
 		if not queue.is_empty():
 			# Spawn next unit
-			var next_unit = queue.pop_back() # Matches current arena stack logic
+			var next_unit = queue.pop_back()
 			if is_player: _player_fighter = next_unit
 			else: _enemy_fighter = next_unit
 			
@@ -157,12 +197,8 @@ func _check_spawn(is_player: bool) -> bool:
 				"attack": next_unit.attack
 			})
 			
-			# Trigger Entrance Ability
-			# Opponent is the current fighter of other side (can be null if empty)
-			var opponent = _enemy_fighter if is_player else _player_fighter
-			_try_ability(BattleTypes.AbilityTrigger.ENTRANCE, next_unit, opponent)
-			return true
-	return false
+			return next_unit
+	return null
 
 func _check_winner() -> BattleTypes.Winner:
 	var p_active = _player_fighter != null
@@ -216,10 +252,14 @@ func _resolve_combat_round():
 	var p_dead = p.hp <= 0
 	var e_dead = e.hp <= 0
 	
-	if p_dead and not e_dead:
-		_try_ability(BattleTypes.AbilityTrigger.KILL, e, p)
-	if e_dead and not p_dead:
+	# Independent checks to handle Double KO
+	if e_dead:
 		_try_ability(BattleTypes.AbilityTrigger.KILL, p, e)
+		_try_ability(BattleTypes.AbilityTrigger.ON_KO, p, e)
+		
+	if p_dead:
+		_try_ability(BattleTypes.AbilityTrigger.KILL, e, p)
+		_try_ability(BattleTypes.AbilityTrigger.ON_KO, e, p)
 		
 	if p_dead: _handle_death(p)
 	if e_dead: _handle_death(e)
@@ -248,6 +288,9 @@ func _check_payback_triggers(victim: SimUnit):
 			_try_ability(BattleTypes.AbilityTrigger.FRIEND_TOOK_DAMAGE, friend_behind, victim)
 
 func _handle_death(unit: SimUnit):
+	# Trigger "DEATH" abilities (e.g. pinned summon) BEFORE clearing the fighter slot
+	_try_ability(BattleTypes.AbilityTrigger.DEATH, unit, null)
+	
 	if unit == _player_fighter:
 		_player_fighter = null
 	elif unit == _enemy_fighter:
@@ -257,6 +300,7 @@ func _handle_death(unit: SimUnit):
 
 
 # --- Ability System (Simplified for Sim) ---
+
 
 func _try_ability(trigger: BattleTypes.AbilityTrigger, source: SimUnit, target: SimUnit):
 	if source == null: return
@@ -271,30 +315,42 @@ func _try_ability(trigger: BattleTypes.AbilityTrigger, source: SimUnit, target: 
 	}
 	var ability_name = definition.ability_name if definition else ""
 	
+		# 1. Execute Script-Based Ability (Resource)
+	if definition and definition.ability_resource:
+		var context = {
+			"trigger": trigger,
+			"simulator": self,
+			"source_sim_unit": source,
+			"target_sim_unit": target,
+			"ability_log": ability_log
+		}
+		# Capture success from the resource execution
+		if definition.ability_resource.execute(source.original_data, context):
+			# _log(ability_log) # Removed to avoid double logging
+			success = true # Mark as success for this function scope too
+			
+	# 2. Legacy Name-Based Logic
 	match trigger:
 		
 		BattleTypes.AbilityTrigger.START_OF_BATTLE:
 			if ability_name == "Opening Bell":
-				# +2 HP to unit in front
+				# +2 HP to unit at the FRONT of the line (Starter)
+				# Queue is [Back ... Front]. So Front is back() (last element)
 				var queue = _player_queue if source.is_player else _enemy_queue
-				var my_idx = queue.find(source)
 				
-				# Queue is [Back ... Front]. So "In Front" means index + 1
-				var target_idx = my_idx + 1
-				
-				if target_idx < queue.size():
-					var friend_in_front = queue[target_idx]
-					friend_in_front.max_hp += 2
-					friend_in_front.hp += 2
+				if not queue.is_empty():
+					var front_unit = queue.back()
 					
-					# We should probably log the buff effect? 
-					# The generic _log(ability_log) at end handles the trigger event.
-					# But we might want to log the stat change? 
-					# For now, simplistic implementation.
-					success = true
-				else:
-					# No one in front (self is front). Do nothing.
-					pass
+					# Marco buffs the "First unit in front".
+					# If Marco is the front unit logic: "Give +2 HP to unit in front".
+					# If he is in front, there is no one.
+					if source != front_unit:
+						front_unit.max_hp += 2
+						front_unit.hp += 2
+						success = true
+					else:
+						# Marco is the starter. No one in front.
+						pass
 
 		BattleTypes.AbilityTrigger.ENTRANCE:
 			pass 
@@ -319,5 +375,39 @@ func _try_ability(trigger: BattleTypes.AbilityTrigger, source: SimUnit, target: 
 			# Legacy Marco logic was here. His actual ability "Opening Bell" is Start of Battle (Entrance).
 			# We can implement it if needed, but primary focus is Decoupling Payback.
 	
+	
 	if success:
 		_log(ability_log)
+
+func summon_unit(definition: UnitDefinition, is_player: bool) -> void:
+	# Create a temporary UnitInstance for the summon
+	var instance = UnitInstance.new()
+	instance.definition = definition
+	instance.hp = definition.base_hp
+	instance.max_hp = definition.base_hp
+	instance.attack = definition.base_attack
+	instance.unit_name = definition.unit_name
+	
+	var sim_unit = _create_sim_unit(instance, is_player, true)
+	
+	var queue = _player_queue if is_player else _enemy_queue
+	
+	# Logic: "Spawn in empty place or right after".
+	# If fighter slot is empty (after death), it will be filled by spawn check from queue.
+	# So we just need to put it at the FRONT of the queue so it's picked next.
+	# Queue is [Back ... Front]. So we append to end.
+	
+	queue.append(sim_unit)
+	
+	# We rely on _check_spawn to pick it up and log SPAWN_UNIT.
+	# BUT, if we want an immediate effect or log that it was summoned, we can query.
+	# Actually, the user requirement: "When unit dies, insert new one... before removing corpse or right after."
+	# We called this inside _handle_death, so corpse is still assigned but about to be nullified.
+	# The next loop of simulation will call _check_spawn.
+	# _check_spawn pops from back of queue.
+	# So appending here puts it at the front of the line. Correct.
+
+func _calculate_ability_trigger_potential(unit: SimUnit, trigger: BattleTypes.AbilityTrigger) -> bool:
+	if not unit.definition or not unit.definition.ability_resource:
+		return false
+	return true
