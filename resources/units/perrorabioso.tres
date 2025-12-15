@@ -1,17 +1,24 @@
-[gd_resource type="Resource" script_class="UnitDefinition" load_steps=3 format=3 uid="uid://fb548qxklffc"]
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=5 format=3 uid="uid://c7t45y0n1g7d"]
 
-[ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_j3em8"]
-[ext_resource type="Texture2D" uid="uid://cwdubemyvh6xb" path="res://assets/sprites/character_boxes/perrorabioso.png" id="1_s0c7f"]
+[ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_4d1s2"]
+[ext_resource type="Texture2D" uid="uid://cwdubemyvh6xb" path="res://assets/sprites/character_boxes/perrorabioso.png" id="1_r4d5s"]
+[ext_resource type="Script" uid="uid://ck5uewlvpc8sd" path="res://scripts/abilities/ability_buff_neighbor.gd" id="2_pinfall"]
+
+[sub_resource type="Resource" id="Resource_pinfall"]
+script = ExtResource("2_pinfall")
 
 [resource]
-script = ExtResource("1_j3em8")
+script = ExtResource("1_4d1s2")
 id = "perrorabioso"
 unit_name = "Perro Rabioso"
-portrait = ExtResource("1_s0c7f")
+portrait = ExtResource("1_r4d5s")
 base_hp = 2
 base_attack = 3
-unit_class = "Striker"
+tier = 2
+unit_class = "Brawler"
+faction = "Rudos"
 heel_face = "Heel"
 ability_name = "Pinfall"
-ability_description = "Give [b] +1 [/b] attack to the next unit"
+ability_description = "Give +1 attack to the next unit on kill."
+ability_resource = SubResource("Resource_pinfall")
 metadata/_custom_type_script = "uid://7upuukcophge"
