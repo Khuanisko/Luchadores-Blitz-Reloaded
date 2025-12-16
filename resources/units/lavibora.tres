@@ -2,11 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://ftpnv6n01xnu" path="res://assets/sprites/character_boxes/lavibora.png" id="1_1alj8"]
 [ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_ijsy8"]
-[ext_resource type="Script" path="res://scripts/abilities/ability_damage_entrance.gd" id="2_entry"]
-
-[sub_resource type="Resource" id="Resource_entry"]
-script = ExtResource("2_entry")
-damage = 1
+[ext_resource type="Resource" path="res://resources/abilities/lavibora_entrance.tres" id="2_ability"]
 
 [resource]
 script = ExtResource("1_ijsy8")
@@ -19,5 +15,5 @@ unit_class = "Striker"
 heel_face = "Heel"
 ability_name = "Entrance"
 ability_description = "Deal [b] 1 [/b] damage to current opponent"
-ability_resource = SubResource("Resource_entry")
+ability_resource = ExtResource("2_ability")
 metadata/_custom_type_script = "uid://7upuukcophge"

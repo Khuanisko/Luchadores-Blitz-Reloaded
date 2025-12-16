@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ManagerDefinition" load_steps=3 format=3 uid="uid://thepromotor"]
+
+[ext_resource type="Texture2D" uid="uid://thepromotor_tex" path="res://assets/sprites/managers/thepromotor.png" id="1_tex"]
+[ext_resource type="Script" path="res://scripts/managers/manager_definition.gd" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+id = "the_promotor"
+manager_name = "The Promotor"
+quote = "\"He turns rookies into superstars. It’s all about the entrance!\""
+ability_description = "Whenever you summon a unit during fight, give it +1/+1"
+portrait = ExtResource("1_tex")

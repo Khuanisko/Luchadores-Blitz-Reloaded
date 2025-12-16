@@ -1,11 +1,8 @@
-[gd_resource type="Resource" script_class="UnitDefinition" load_steps=5 format=3 uid="uid://c7t45y0n1g7d"]
+[gd_resource type="Resource" script_class="UnitDefinition" load_steps=4 format=3 uid="uid://c7t45y0n1g7d"]
 
 [ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_4d1s2"]
 [ext_resource type="Texture2D" uid="uid://cwdubemyvh6xb" path="res://assets/sprites/character_boxes/perrorabioso.png" id="1_r4d5s"]
-[ext_resource type="Script" uid="uid://ck5uewlvpc8sd" path="res://scripts/abilities/ability_buff_neighbor.gd" id="2_pinfall"]
-
-[sub_resource type="Resource" id="Resource_pinfall"]
-script = ExtResource("2_pinfall")
+[ext_resource type="Resource" path="res://resources/abilities/perrorabioso_pinfall.tres" id="2_ability"]
 
 [resource]
 script = ExtResource("1_4d1s2")
@@ -20,5 +17,5 @@ faction = "Rudos"
 heel_face = "Heel"
 ability_name = "Pinfall"
 ability_description = "Give +1 attack to the next unit on kill."
-ability_resource = SubResource("Resource_pinfall")
+ability_resource = ExtResource("2_ability")
 metadata/_custom_type_script = "uid://7upuukcophge"

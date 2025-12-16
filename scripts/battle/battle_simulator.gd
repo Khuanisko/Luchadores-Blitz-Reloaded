@@ -38,6 +38,12 @@ var _enemy_fighter: SimUnit = null
 
 # --- Public API ---
 
+func get_team_queue(is_player: bool) -> Array:
+	return _player_queue if is_player else _enemy_queue
+
+func get_active_fighter(is_player: bool) -> SimUnit:
+	return _player_fighter if is_player else _enemy_fighter
+
 func simulate(player_team: Array[UnitInstance], enemy_team: Array[UnitInstance]) -> BattleResult:
 	_reset()
 	
@@ -136,12 +142,12 @@ func _resolve_start_of_battle():
 	
 	# Collect from Player Queue
 	for unit in _player_queue:
-		if unit.definition and unit.definition.ability_name == "Opening Bell":
+		if unit.definition and unit.definition.ability_resource:
 			triggers.append({ "unit": unit, "attack": unit.attack, "tie": randf() })
 			
 	# Collect from Enemy Queue
 	for unit in _enemy_queue:
-		if unit.definition and unit.definition.ability_name == "Opening Bell":
+		if unit.definition and unit.definition.ability_resource:
 			triggers.append({ "unit": unit, "attack": unit.attack, "tie": randf() })
 			
 	# Sort: Attack Descending, then Random Tie-breaker
@@ -173,8 +179,6 @@ func _create_sim_unit(unit: UnitInstance, is_player: bool, is_summon: bool = fal
 func _log(event: Dictionary):
 	_battle_log.append(event)
 
-	return null
-		
 func _check_spawn(is_player: bool) -> SimUnit:
 	var fighter = _player_fighter if is_player else _enemy_fighter
 	
@@ -313,7 +317,6 @@ func _try_ability(trigger: BattleTypes.AbilityTrigger, source: SimUnit, target: 
 		"source": source.id,
 		"ability_name": definition.ability_name if definition else "Unknown"
 	}
-	var ability_name = definition.ability_name if definition else ""
 	
 		# 1. Execute Script-Based Ability (Resource)
 	if definition and definition.ability_resource:
@@ -329,52 +332,6 @@ func _try_ability(trigger: BattleTypes.AbilityTrigger, source: SimUnit, target: 
 			# _log(ability_log) # Removed to avoid double logging
 			success = true # Mark as success for this function scope too
 			
-	# 2. Legacy Name-Based Logic
-	match trigger:
-		
-		BattleTypes.AbilityTrigger.START_OF_BATTLE:
-			if ability_name == "Opening Bell":
-				# +2 HP to unit at the FRONT of the line (Starter)
-				# Queue is [Back ... Front]. So Front is back() (last element)
-				var queue = _player_queue if source.is_player else _enemy_queue
-				
-				if not queue.is_empty():
-					var front_unit = queue.back()
-					
-					# Marco buffs the "First unit in front".
-					# If Marco is the front unit logic: "Give +2 HP to unit in front".
-					# If he is in front, there is no one.
-					if source != front_unit:
-						front_unit.max_hp += 2
-						front_unit.hp += 2
-						success = true
-					else:
-						# Marco is the starter. No one in front.
-						pass
-
-		BattleTypes.AbilityTrigger.ENTRANCE:
-			pass 
-			# Legacy Entrance logic removed/commented out previously.
-			# If we want to implement "Opening Bell" (Marco) or "Entrance" (El Jaguarro) here, we can.
-			# But for now, just cleaning up name checks if any remain active.
-				
-		BattleTypes.AbilityTrigger.ATTACK:
-			if ability_name == "Combo":
-				# El Torro: Gains +1 attack while attacking
-				source.attack += 1
-				success = true
-				
-		BattleTypes.AbilityTrigger.FRIEND_TOOK_DAMAGE:
-			if ability_name == "Payback":
-				# Dolores: Gain +1 Attack
-				source.attack += 1
-				success = true
-				
-		BattleTypes.AbilityTrigger.KILL:
-			pass
-			# Legacy Marco logic was here. His actual ability "Opening Bell" is Start of Battle (Entrance).
-			# We can implement it if needed, but primary focus is Decoupling Payback.
-	
 	
 	if success:
 		_log(ability_log)

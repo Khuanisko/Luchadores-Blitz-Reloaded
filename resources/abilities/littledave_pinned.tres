@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="AbilitySummon" load_steps=3 format=3 uid="uid://f5io2akqsxqq"]
+
+[ext_resource type="Script" uid="uid://b1raocfcu2r0y" path="res://scripts/abilities/ability_summon.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://ngryfan0000" path="res://resources/units/angry_fan.tres" id="2_unit"]
+
+[resource]
+script = ExtResource("1_script")
+summon_unit = ExtResource("2_unit")

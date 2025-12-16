@@ -11,7 +11,10 @@ func execute(owner_unit: UnitInstance, context: Dictionary = {}) -> bool:
 	# The simulator uses `BattleTypes.AbilityTrigger` enum.
 	# Check for DEATH trigger
 	# Ensure trigger is int (Enum) before comparing
-	if typeof(trigger) == TYPE_INT and trigger == BattleTypes.AbilityTrigger.KILL:
+	if typeof(trigger) != TYPE_INT:
+		return false
+		
+	if trigger == BattleTypes.AbilityTrigger.KILL:
 		# BattleSimulator has `_handle_death`. I need to add a hook there.
 		# The Plan says "Trigger BattleTypes.AbilityTrigger.DEATH".
 		pass

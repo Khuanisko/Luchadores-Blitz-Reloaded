@@ -4,6 +4,8 @@ extends Node
 var player_lives: int = 5
 var player_wins: int = 0
 var current_round: int = 1
+var selected_manager: ManagerDefinition
+
 
 var player_team: Array[UnitInstance] = []
 var enemy_team: Array[UnitInstance] = []
