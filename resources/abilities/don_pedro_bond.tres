@@ -1,9 +1,8 @@
-[gd_resource type="Resource" script_class="FactionBondAbility" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="FactionBondAbility" load_steps=2 format=3 uid="uid://m440dswkmfen"]
 
-[ext_resource type="Script" path="res://scripts/abilities/ability_faction_bond.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://dhf71567n3dxr" path="res://scripts/abilities/ability_faction_bond.gd" id="1_script"]
 
 [resource]
 script = ExtResource("1_script")
 required_faction = "Los Banditos"
 effect_type = 1
-amount = 1

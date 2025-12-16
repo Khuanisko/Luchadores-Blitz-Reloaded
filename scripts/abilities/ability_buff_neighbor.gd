@@ -16,7 +16,10 @@ func execute(_owner: UnitInstance, context: Dictionary = {}) -> bool:
 	# For now check specific trigger or rely on context. 
 	# Let's check trigger if provided.
 	
-	if typeof(trigger) == TYPE_INT and trigger == BattleTypes.AbilityTrigger.ON_KO:
+	if typeof(trigger) != TYPE_INT:
+		return false
+		
+	if trigger == BattleTypes.AbilityTrigger.ON_KO:
 		return _apply_buff(context)
 		
 	return false

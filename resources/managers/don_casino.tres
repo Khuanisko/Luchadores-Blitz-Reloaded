@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ManagerDefinition" load_steps=3 format=3 uid="uid://doncasino"]
+
+[ext_resource type="Texture2D" uid="uid://doncasino_tex" path="res://assets/sprites/managers/doncasino.png" id="1_tex"]
+[ext_resource type="Script" path="res://scripts/managers/manager_definition.gd" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+id = "don_casino"
+manager_name = "Don Casino"
+quote = "\"Lady Luck is his tag team partner. High risk, high reward.\""
+ability_description = "Pay 3 gold to get a random unit from your tier"
+portrait = ExtResource("1_tex")

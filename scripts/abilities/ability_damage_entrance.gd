@@ -6,7 +6,10 @@ extends AbilityBase
 func execute(_owner: UnitInstance, context: Dictionary = {}) -> bool:
 	var trigger = context.get("trigger", -1)
 	
-	if typeof(trigger) == TYPE_INT and trigger == BattleTypes.AbilityTrigger.ON_TAG_IN:
+	if typeof(trigger) != TYPE_INT:
+		return false
+		
+	if trigger == BattleTypes.AbilityTrigger.ON_TAG_IN:
 		return _apply_damage(context)
 		
 	return false

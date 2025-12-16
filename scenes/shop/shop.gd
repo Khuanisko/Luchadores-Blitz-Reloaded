@@ -38,6 +38,9 @@ func _ready() -> void:
 	_update_gold_display()
 	_update_fight_button()
 	_update_hud()
+	if GameData.selected_manager:
+		print("Selected Manager: ", GameData.selected_manager.manager_name)
+
 
 
 func _ensure_pool_loaded() -> void:

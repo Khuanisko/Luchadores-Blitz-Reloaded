@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="AbilityOpeningBell" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/abilities/ability_opening_bell.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+amount = 2
