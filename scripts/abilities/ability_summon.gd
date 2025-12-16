@@ -38,5 +38,27 @@ func _perform_summon(context: Dictionary) -> void:
 	var owner_sim_unit = context.get("source_sim_unit")
 	
 	if simulator and summon_unit and owner_sim_unit:
+		# Get Level
+		var level = 1
+		if owner_sim_unit.get("original_data") and owner_sim_unit.original_data.get("level"):
+			level = owner_sim_unit.original_data.level
+			
 		# Call the new simulator method
-		simulator.summon_unit(summon_unit, owner_sim_unit.is_player)
+		simulator.summon_unit(summon_unit, owner_sim_unit.is_player, level)
+
+func get_description(level: int, base_desc: String) -> String:
+	# Assume summon unit defines base stats.
+	if summon_unit:
+		var scaled_hp = summon_unit.base_hp * level
+		var scaled_atk = summon_unit.base_attack * level
+		# Try to replace patterns like "1/1" or "2/2"
+		# The resource says "Summon [b] 2/2 [/b] angry fan"
+		# I need to find "X/Y" and replace with "scaled_X/scaled_Y"
+		# Or specifically "[b] 1/1 [/b]"
+		
+		# Robust replacement attempt for "X/Y"
+		return base_desc.replace("1/1", str(scaled_atk) + "/" + str(scaled_hp)) \
+			.replace("2/2", str(scaled_atk) + "/" + str(scaled_hp)) \
+			.replace("[b] 1/1 [/b]", "[b] " + str(scaled_atk) + "/" + str(scaled_hp) + " [/b]")
+			
+	return base_desc

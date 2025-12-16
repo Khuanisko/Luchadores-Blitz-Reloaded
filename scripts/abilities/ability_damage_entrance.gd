@@ -30,8 +30,30 @@ func _apply_damage(context: Dictionary) -> bool:
 		simulator._log(ability_log)
 		
 	# Deal damage directly
-	simulator._apply_damage(target_sim_unit, damage, source_sim_unit)
-	# print("Entrance Ability: %s dealt %d damage to %s" % [source_sim_unit.original_data.unit_name, damage, target_sim_unit.original_data.unit_name])
-	
-	# Return false so _try_ability doesn't log it again!
+	# Scale with Level: Multi-hit
+	var level = 1
+	if source_sim_unit.get("original_data") and source_sim_unit.original_data.get("level"):
+		level = source_sim_unit.original_data.level
+		
+	# Loop for multi-hit
+	for i in range(level):
+		# Determine target for this hit
+		var current_target = simulator.get_active_fighter(!source_sim_unit.is_player)
+		
+		# If current target is dead (HP <= 0), look for next unit in queue
+		if not current_target or current_target.hp <= 0:
+			var queue = simulator.get_team_queue(!source_sim_unit.is_player)
+			if queue and not queue.is_empty():
+				current_target = queue.back() # Front of line
+				
+		if current_target and current_target.hp > 0:
+			simulator._apply_damage(current_target, damage, source_sim_unit)
+			
+	# Return false to avoid double logging
 	return false
+
+func get_description(level: int, base_desc: String) -> String:
+	# Show number of hits if > 1
+	if level > 1:
+		return base_desc + " (x" + str(level) + ")"
+	return base_desc
