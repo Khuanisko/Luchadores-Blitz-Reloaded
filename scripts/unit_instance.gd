@@ -31,7 +31,7 @@ var cost: int:
 	get: return definition.cost if definition else 0
 
 var sell_value: int:
-	get: return definition.sell_value if definition else 0
+	get: return (definition.sell_value * level) if definition else 0
 
 var tier: int:
 	get: return definition.tier if definition else 1
@@ -49,7 +49,27 @@ var ability_name: String:
 	get: return definition.ability_name if definition else ""
 
 var ability_description: String:
-	get: return definition.ability_description if definition else ""
+	get: 
+		var desc = definition.ability_description if definition else ""
+		
+		# Resource-based description
+		if definition and definition.ability_resource:
+			if definition.ability_resource.has_method("get_description"):
+				return definition.ability_resource.get_description(level, desc)
+				
+		# Fallback / Built-in handling (e.g. El Doblon Sell Value)
+		if definition and definition.sell_value > 0 and "Sells for" in desc:
+			# El Doblon pattern: "Sells for [b] 3 [/b] gold"
+			# We want to replace the base sell value with calculated sell_value
+			# Pattern: Find the base value string.
+			var base_val = definition.sell_value
+			var current_val = sell_value # This uses the getter which scales with level
+			
+			# Try to replace "[b] X [/b]" or just "X"
+			return desc.replace("[b] " + str(base_val) + " [/b]", "[b] " + str(current_val) + " [/b]") \
+				.replace(str(base_val), str(current_val))
+				
+		return desc
 
 
 func _init(p_definition: UnitDefinition = null) -> void:
@@ -77,10 +97,10 @@ func add_xp(amount: int) -> void:
 func level_up() -> void:
 	xp -= max_xp
 	level += 1
-	# Increase stats on level up (doubling stats pattern from previous code)
-	max_hp *= 2
+	# Increase stats on level up (+1/+1 per level)
+	max_hp += 1
 	hp = max_hp # Heal on level up
-	attack *= 2
+	attack += 1
 
 
 # --- Ability System (Shop Phase) ---

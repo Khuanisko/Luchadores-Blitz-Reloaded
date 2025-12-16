@@ -12,6 +12,15 @@ func execute(owner_unit: UnitInstance, context: Dictionary = {}) -> bool:
 	return false
 
 func _apply_effect(owner_unit: UnitInstance) -> void:
-	owner_unit.max_hp += health_bonus
-	owner_unit.hp += health_bonus
-	print("Prize Fighter Triggered: %s gains +%d HP" % [owner_unit.unit_name, health_bonus])
+	var scaled_bonus = health_bonus * owner_unit.level
+	owner_unit.max_hp += scaled_bonus
+	owner_unit.hp += scaled_bonus
+	print("Prize Fighter Triggered: %s gains +%d HP" % [owner_unit.unit_name, scaled_bonus])
+
+func get_description(level: int, base_desc: String) -> String:
+	var scaled_bonus = health_bonus * level
+	
+	# Explicit replacement for El Barril pattern: "Gain [b]  +1 [/b] Health" (Double space)
+	return base_desc.replace("[b]  +" + str(health_bonus) + " [/b]", "[b] +" + str(scaled_bonus) + " [/b]") \
+		.replace("[b] +" + str(health_bonus) + " [/b]", "[b] +" + str(scaled_bonus) + " [/b]") \
+		.replace("[b] " + str(health_bonus) + " [/b]", "[b] " + str(scaled_bonus) + " [/b]")

@@ -336,14 +336,21 @@ func _try_ability(trigger: BattleTypes.AbilityTrigger, source: SimUnit, target: 
 	if success:
 		_log(ability_log)
 
-func summon_unit(definition: UnitDefinition, is_player: bool) -> void:
+func summon_unit(definition: UnitDefinition, is_player: bool, level: int = 1) -> void:
 	# Create a temporary UnitInstance for the summon
 	var instance = UnitInstance.new()
 	instance.definition = definition
-	instance.hp = definition.base_hp
-	instance.max_hp = definition.base_hp
-	instance.attack = definition.base_attack
+	
+	# Scale stats with level: Base + (Level - 1)
+	# Level 1: Base + 0
+	# Level 2: Base + 1
+	var stat_bonus = level - 1
+	instance.max_hp = definition.base_hp + stat_bonus
+	instance.hp = instance.max_hp
+	instance.attack = definition.base_attack + stat_bonus
+	
 	instance.unit_name = definition.unit_name
+	instance.level = level # Set level for new unit too (might affect its own abilities if it had any)
 	
 	var sim_unit = _create_sim_unit(instance, is_player, true)
 	

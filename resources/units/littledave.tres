@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://7upuukcophge" path="res://scripts/unit_definition.gd" id="1_1hw5r"]
 [ext_resource type="Texture2D" uid="uid://kbai5dayg84x" path="res://assets/sprites/character_boxes/littledave.png" id="1_f28hb"]
-[ext_resource type="Resource" path="res://resources/abilities/littledave_pinned.tres" id="2_ability"]
+[ext_resource type="Resource" uid="uid://f5io2akqsxqq" path="res://resources/abilities/littledave_pinned.tres" id="2_ability"]
 
 [resource]
 script = ExtResource("1_1hw5r")

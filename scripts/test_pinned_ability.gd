@@ -22,9 +22,14 @@ func _init():
 	# Little Dave (Player)
 	var dave_inst = UnitInstance.new()
 	dave_inst.definition = dave_def
-	dave_inst.hp = 1 # Weak, ensuring death
+	dave_inst.level = 2 # LEVEL 2 TEST
+	dave_inst.hp = 1 
 	dave_inst.max_hp = 1
 	dave_inst.attack = 1
+	
+	# Verify Tooltip
+	print("Dave Level 2 Description: ", dave_inst.ability_description)
+	# Expected: "Summon [b] 2/2 [/b] angry fan" (if base was 1/1)
 	
 	# Enemy (Enemy Team)
 	var enemy_inst = UnitInstance.new()
@@ -88,8 +93,23 @@ func _init():
 					# Spawned before death log? Yes, expected.
 					pass
 					
+						
 	if found_summon:
 		print("SUCCESS: Angry Fan was summoned.")
+		# Check stats of summoned unit if possible from log?
+		# Log has SPAWN_UNIT event with hp and attack.
+		var spawn_event = null
+		for e in result.log:
+			if e.type == BattleTypes.EventType.SPAWN_UNIT and e.unit_name == "Angry Fan":
+				spawn_event = e
+				break
+		
+		if spawn_event:
+			print("Summon Stats - HP: ", spawn_event.max_hp, " Attack: ", spawn_event.attack)
+			if spawn_event.max_hp == 2 and spawn_event.attack == 2: # Base 1/1 * Level 2 = 2/2
+				print("SCALING VERIFIED: Stats are double base.")
+			else:
+				print("SCALING CHECK: Expected 2/2, got ", spawn_event.max_hp, "/", spawn_event.attack)
 	else:
 		print("FAILURE: Angry Fan was NOT summoned.")
 		# Debug print entire log

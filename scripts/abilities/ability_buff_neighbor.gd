@@ -34,16 +34,28 @@ func _apply_buff(context: Dictionary) -> bool:
 	# Find neighbor
 	var neighbor = _find_neighbor(simulator, source_sim_unit)
 	if neighbor:
+		# Scale with Level
+		var level = 1
+		if source_sim_unit.get("original_data") and source_sim_unit.original_data.get("level"):
+			level = source_sim_unit.original_data.level
+		
+		var scaled_amount = amount * level
+		
 		if buff_type == BuffType.ATTACK:
-			neighbor.attack += amount
-			# Log explicitly if needed, but the generic log covers the trigger event.
-			# We might want a STAT_CHANGE event later? For now just applying.
+			neighbor.attack += scaled_amount
 		elif buff_type == BuffType.HP:
-			neighbor.max_hp += amount
-			neighbor.hp += amount
+			neighbor.max_hp += scaled_amount
+			neighbor.hp += scaled_amount
 		return true
 		
 	return false
+
+func get_description(level: int, base_desc: String) -> String:
+	var scaled_amount = amount * level
+	
+	# Explicit replacement for Perro Rabioso: "Give +1 attack"
+	return base_desc.replace("+" + str(amount) + " attack", "+" + str(scaled_amount) + " attack") \
+		.replace("[b] +" + str(amount) + " [/b]", "[b] +" + str(scaled_amount) + " [/b]")
 
 func _find_neighbor(simulator, source_unit) -> Object: # Returns SimUnit
 	var queue = simulator._player_queue if source_unit.is_player else simulator._enemy_queue
