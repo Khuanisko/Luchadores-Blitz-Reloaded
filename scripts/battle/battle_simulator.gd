@@ -138,6 +138,46 @@ func simulate(player_team: Array[UnitInstance], enemy_team: Array[UnitInstance])
 	return result
 
 func _resolve_start_of_battle():
+	# David King Priority Opening Bell - check both managers
+	var player_has_dk = GameData.selected_manager and GameData.selected_manager.id == "david_king"
+	var enemy_has_dk = GameData.enemy_manager and GameData.enemy_manager.id == "david_king"
+	
+	# Mirror match: randomize order
+	var player_first = true
+	if player_has_dk and enemy_has_dk:
+		player_first = randf() > 0.5
+	
+	# Execute David King abilities in order
+	var dk_order = []
+	if player_has_dk:
+		dk_order.append({"is_player": true, "target_queue": "_enemy_queue"})
+	if enemy_has_dk:
+		dk_order.append({"is_player": false, "target_queue": "_player_queue"})
+	
+	if not player_first:
+		dk_order.reverse()
+	
+	for dk in dk_order:
+		var target_queue = _enemy_queue if dk.is_player else _player_queue
+		var is_target_player = not dk.is_player
+		
+		if not target_queue.is_empty():
+			# First, spawn the target so it appears visually
+			_check_spawn(is_target_player)
+			
+			# Now get the active fighter (which we just spawned)
+			var target_fighter = _player_fighter if is_target_player else _enemy_fighter
+			if target_fighter:
+				_apply_damage(target_fighter, 2, null)
+				_log({
+					"type": BattleTypes.EventType.ABILITY_TRIGGER,
+					"trigger": BattleTypes.AbilityTrigger.START_OF_BATTLE,
+					"source": -1,
+					"ability_name": "David King Opening Bell"
+				})
+				if target_fighter.hp <= 0:
+					_handle_death(target_fighter)
+	
 	var triggers = []
 	
 	# Collect from Player Queue
@@ -275,30 +315,47 @@ func _apply_damage(target: SimUnit, amount: int, source: SimUnit):
 		"target": target.id,
 		"amount": amount,
 		"new_hp": target.hp,
-		"source": source.id # Attribution
+		"source": source.id if source else -1
 	})
 	
 	_check_payback_triggers(target)
 
 func _check_payback_triggers(victim: SimUnit):
-	# Payback triggers for the unit directly BEHIND the victim in the queue
+	# Payback triggers for the unit directly BEHIND the victim
 	var queue = _player_queue if victim.is_player else _enemy_queue
+	var active_fighter = _player_fighter if victim.is_player else _enemy_fighter
 	
-	if not queue.is_empty():
-		# The unit "in front" of the queue is the one right behind the fighter.
-		# Since we pop from back for spawning, back() is the front of the line.
-		var friend_behind = queue.back()
-		if friend_behind:
-			_try_ability(BattleTypes.AbilityTrigger.FRIEND_TOOK_DAMAGE, friend_behind, victim)
+	var friend_behind: SimUnit = null
+	
+	# Case 1: Victim is the active fighter - check queue front
+	if victim == active_fighter:
+		if not queue.is_empty():
+			friend_behind = queue.back()
+	else:
+		# Case 2: Victim is in the queue (e.g. David King's Opening Bell)
+		var victim_index = queue.find(victim)
+		if victim_index > 0:
+			# Unit behind is at lower index (queue goes [..., behind, victim] where victim is at back)
+			friend_behind = queue[victim_index - 1]
+	
+	if friend_behind and friend_behind != victim:
+		_try_ability(BattleTypes.AbilityTrigger.FRIEND_TOOK_DAMAGE, friend_behind, victim)
 
 func _handle_death(unit: SimUnit):
-	# Trigger "DEATH" abilities (e.g. pinned summon) BEFORE clearing the fighter slot
+	# Trigger "DEATH" abilities (e.g. pinned summon) BEFORE clearing the fighter/queue slot
 	_try_ability(BattleTypes.AbilityTrigger.DEATH, unit, null)
 	
+	# Clear fighter slot if this was the active fighter
 	if unit == _player_fighter:
 		_player_fighter = null
 	elif unit == _enemy_fighter:
 		_enemy_fighter = null
+	
+	# Also remove from queue if unit was killed while in queue (e.g. David King Opening Bell)
+	var queue = _player_queue if unit.is_player else _enemy_queue
+	var idx = queue.find(unit)
+	if idx >= 0:
+		queue.remove_at(idx)
 		
 	_log({ "type": BattleTypes.EventType.DEATH, "unit_id": unit.id })
 
@@ -348,6 +405,13 @@ func summon_unit(definition: UnitDefinition, is_player: bool, level: int = 1) ->
 	instance.max_hp = definition.base_hp + stat_bonus
 	instance.hp = instance.max_hp
 	instance.attack = definition.base_attack + stat_bonus
+	
+	# The Promotor Ability: Summoned units get +1/+1
+	var manager = GameData.selected_manager if is_player else GameData.enemy_manager
+	if manager and manager.id == "the_promotor":
+		instance.max_hp += 1
+		instance.hp += 1
+		instance.attack += 1
 	
 	instance.unit_name = definition.unit_name
 	instance.level = level # Set level for new unit too (might affect its own abilities if it had any)

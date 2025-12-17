@@ -8,6 +8,8 @@ extends Control
 @onready var wins_label: Label = $UILayer/HUD/WinsContainer/WinsLabel
 @onready var round_label: Label = $UILayer/HUD/RoundContainer/RoundLabel
 @onready var speed_button: Button = $UILayer/SpeedButton
+@onready var player_manager_icon: TextureRect = $UILayer/PlayerManagerIcon
+@onready var enemy_manager_icon: TextureRect = $UILayer/EnemyManagerIcon
 
 const FIGHTER_SCENE = preload("res://scenes/battle/fighter.tscn")
 
@@ -25,6 +27,7 @@ const RIGHT_COMBAT = Vector2(1220, 650)
 func _ready() -> void:
 	_setup_battle()
 	_update_hud()
+	_setup_manager_icons()
 	
 	if speed_button:
 		speed_button.pressed.connect(_on_speed_button_pressed)
@@ -295,3 +298,19 @@ func _on_speed_button_pressed() -> void:
 func _wait(seconds: float) -> void:
 	# With Engine.time_scale, we don't need manual division
 	await get_tree().create_timer(seconds).timeout
+
+
+func _setup_manager_icons() -> void:
+	if player_manager_icon and GameData.selected_manager:
+		if GameData.selected_manager.button_icon:
+			player_manager_icon.texture = GameData.selected_manager.button_icon
+		player_manager_icon.visible = true
+	elif player_manager_icon:
+		player_manager_icon.visible = false
+	
+	if enemy_manager_icon and GameData.enemy_manager:
+		if GameData.enemy_manager.button_icon:
+			enemy_manager_icon.texture = GameData.enemy_manager.button_icon
+		enemy_manager_icon.visible = true
+	elif enemy_manager_icon:
+		enemy_manager_icon.visible = false

@@ -149,3 +149,24 @@ offset_bottom = 80.0
 grow_horizontal = 0
 theme_override_font_sizes/font_size = 32
 text = "Speed: 1x"
+
+[node name="PlayerManagerIcon" type="TextureRect" parent="UILayer"]
+offset_left = 20.0
+offset_top = 100.0
+offset_right = 84.0
+offset_bottom = 164.0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnemyManagerIcon" type="TextureRect" parent="UILayer"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -84.0
+offset_top = 100.0
+offset_right = -20.0
+offset_bottom = 164.0
+grow_horizontal = 0
+expand_mode = 1
+stretch_mode = 5
+

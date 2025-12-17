@@ -5,6 +5,8 @@ var player_lives: int = 5
 var player_wins: int = 0
 var current_round: int = 1
 var selected_manager: ManagerDefinition
+var player_tier: int = 1
+var enemy_manager: ManagerDefinition
 
 
 var player_team: Array[UnitInstance] = []
@@ -37,15 +39,23 @@ func generate_enemy_team() -> void:
 	enemy_team.clear()
 	
 	var presets = [
-		["Marco", "Dolores"],
-		["El Torro", "Dolores", "Marco"],
-		["El Jaguarro", "Dolores", "El Torro", "Marco", "Gonzales"]
+		{ "units": ["Marco", "Dolores"], "manager": "david_king" },
+		{ "units": ["El Torro", "Dolores", "Marco", "Little Dave"], "manager": "the_promotor" },
+		{ "units": ["El Jaguarro", "Dolores", "El Torro", "Marco", "Gonzales"], "manager": "don_casino" }
 	]
 	
 	var chosen_preset = presets.pick_random()
-	print("Enemy Team Generated: ", chosen_preset)
+	print("Enemy Team Generated: ", chosen_preset.units, " Manager: ", chosen_preset.manager)
 	
-	for unit_name in chosen_preset:
+	# Load enemy manager
+	var manager_path = "res://resources/managers/" + chosen_preset.manager.replace("_", "_") + ".tres"
+	if ResourceLoader.exists(manager_path):
+		enemy_manager = load(manager_path)
+	else:
+		enemy_manager = null
+		print("Enemy manager not found: ", manager_path)
+	
+	for unit_name in chosen_preset.units:
 		var unit = _create_unit(unit_name)
 		if unit:
 			enemy_team.append(unit)

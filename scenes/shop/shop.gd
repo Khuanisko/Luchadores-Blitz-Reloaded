@@ -4,6 +4,7 @@
 extends Control
 
 const UNIT_SLOT_SCENE = preload("res://scenes/shop/unit_slot.tscn")
+const MANAGER_TOOLTIP_SCENE = preload("res://scenes/managers/manager_tooltip.tscn")
 
 # Currency
 const STARTING_GOLD: int = 1000
@@ -25,6 +26,9 @@ var previous_gold: int = 1000
 @onready var hp_label: Label = $HUD/HPContainer/HPLabel
 @onready var wins_label: Label = $HUD/WinsContainer/WinsLabel
 @onready var round_label: Label = $HUD/RoundContainer/RoundLabel
+@onready var manager_icon: TextureButton = $ManagerIcon
+
+var manager_tooltip: Control
 
 
 func _ready() -> void:
@@ -38,8 +42,8 @@ func _ready() -> void:
 	_update_gold_display()
 	_update_fight_button()
 	_update_hud()
-	if GameData.selected_manager:
-		print("Selected Manager: ", GameData.selected_manager.manager_name)
+	_setup_manager_icon()
+	_apply_don_casino_ability()
 
 
 
@@ -244,3 +248,82 @@ func _update_hud() -> void:
 		wins_label.text = str(GameData.player_wins)
 	if round_label:
 		round_label.text = str(GameData.current_round)
+
+
+func _setup_manager_icon() -> void:
+	if not manager_icon:
+		return
+		
+	if GameData.selected_manager:
+		var manager = GameData.selected_manager
+		if manager.button_icon:
+			manager_icon.texture_normal = manager.button_icon
+		manager_icon.mouse_entered.connect(_on_manager_icon_mouse_entered)
+		manager_icon.mouse_exited.connect(_on_manager_icon_mouse_exited)
+		manager_icon.visible = true
+	else:
+		manager_icon.visible = false
+
+
+func _on_manager_icon_mouse_entered() -> void:
+	if not GameData.selected_manager:
+		return
+	
+	if manager_tooltip:
+		manager_tooltip.queue_free()
+	
+	manager_tooltip = MANAGER_TOOLTIP_SCENE.instantiate()
+	add_child(manager_tooltip)
+	
+	if manager_tooltip.has_method("show_manager"):
+		manager_tooltip.show_manager(GameData.selected_manager, false)
+
+
+func _on_manager_icon_mouse_exited() -> void:
+	if manager_tooltip:
+		manager_tooltip.queue_free()
+		manager_tooltip = null
+
+
+func _process(_delta: float) -> void:
+	if manager_tooltip:
+		manager_tooltip.global_position = get_global_mouse_position() + Vector2(20, 20)
+		
+		# Keep inside screen
+		var viewport_rect = get_viewport_rect()
+		var tooltip_rect = manager_tooltip.get_global_rect()
+		
+		if tooltip_rect.end.x > viewport_rect.size.x:
+			manager_tooltip.global_position.x -= tooltip_rect.size.x + 40
+		if tooltip_rect.end.y > viewport_rect.size.y:
+			manager_tooltip.global_position.y -= tooltip_rect.size.y + 40
+
+
+func _apply_don_casino_ability() -> void:
+	if not GameData.selected_manager:
+		return
+	if GameData.selected_manager.id != "don_casino":
+		return
+	
+	# Even rounds only (2, 4, 6...)
+	if GameData.current_round % 2 != 0:
+		return
+	
+	# If team is full, give 1 gold instead
+	if team_board.is_full():
+		GameData.gain_gold(1)
+		print("[Don Casino] Team full - gained 1 gold")
+		return
+	
+	# Get random unit from player's tier
+	var tier_units = available_units_pool.filter(
+		func(u): return u.tier == GameData.player_tier
+	)
+	if tier_units.is_empty():
+		return
+	
+	var random_unit = tier_units.pick_random()
+	var unit = UnitInstance.new(random_unit)
+	team_board.add_unit(unit)
+	unit.connect_shop_signals()
+	print("[Don Casino] Free unit: ", unit.unit_name)
