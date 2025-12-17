@@ -43,7 +43,7 @@ func _ready() -> void:
 	_update_fight_button()
 	_update_hud()
 	_setup_manager_icon()
-	_apply_don_casino_ability()
+	_apply_manager_effects()
 
 
 
@@ -299,31 +299,12 @@ func _process(_delta: float) -> void:
 			manager_tooltip.global_position.y -= tooltip_rect.size.y + 40
 
 
-func _apply_don_casino_ability() -> void:
+func _apply_manager_effects() -> void:
 	if not GameData.selected_manager:
 		return
-	if GameData.selected_manager.id != "don_casino":
-		return
-	
-	# Even rounds only (2, 4, 6...)
-	if GameData.current_round % 2 != 0:
-		return
-	
-	# If team is full, give 1 gold instead
-	if team_board.is_full():
-		GameData.gain_gold(1)
-		print("[Don Casino] Team full - gained 1 gold")
-		return
-	
-	# Get random unit from player's tier
-	var tier_units = available_units_pool.filter(
-		func(u): return u.tier == GameData.player_tier
-	)
-	if tier_units.is_empty():
-		return
-	
-	var random_unit = tier_units.pick_random()
-	var unit = UnitInstance.new(random_unit)
-	team_board.add_unit(unit)
-	unit.connect_shop_signals()
-	print("[Don Casino] Free unit: ", unit.unit_name)
+		
+	# Check for strategy script
+	if GameData.selected_manager.ability_script:
+		var ability = GameData.selected_manager.ability_script.new()
+		if ability.has_method("execute_shop_round_start"):
+			ability.execute_shop_round_start(self)
