@@ -2,6 +2,7 @@ extends PanelContainer
 
 @onready var name_label: Label = $MarginContainer/VBoxContainer/NameLabel
 @onready var quote_label: RichTextLabel = $MarginContainer/VBoxContainer/QuoteLabel
+@onready var quote_separator: HSeparator = $MarginContainer/VBoxContainer/HSeparator
 @onready var ability_label: Label = $MarginContainer/VBoxContainer/AbilityLabel
 
 func _ready() -> void:
@@ -15,13 +16,19 @@ func _ready() -> void:
 	# Fix kotwic (zapobiega rozciąganiu do ekranu)
 	set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 
-func show_manager(definition: ManagerDefinition) -> void:
+func show_manager(definition: ManagerDefinition, show_quote: bool = true) -> void:
 	# 1. Ustawiamy przeźroczystość na 0 (Niewidzialny, ale aktywny)
 	modulate.a = 0
 	
 	# 2. Wypełnij dane
 	name_label.text = definition.manager_name
-	quote_label.text = "[center][i]" + definition.quote + "[/i][/center]"
+	if show_quote:
+		quote_label.text = "[center][i]" + definition.quote + "[/i][/center]"
+		quote_label.visible = true
+		quote_separator.visible = true
+	else:
+		quote_label.visible = false
+		quote_separator.visible = false
 	ability_label.text = definition.ability_description
 	
 	# 3. PROCEDURA RESETU
