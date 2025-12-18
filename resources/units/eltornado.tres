@@ -10,5 +10,5 @@ unit_name = "El Tornado"
 portrait = ExtResource("1_on6eq")
 base_hp = 3
 base_attack = 3
-unit_class = "High Flyer"
+unit_class = 3
 metadata/_custom_type_script = "uid://7upuukcophge"

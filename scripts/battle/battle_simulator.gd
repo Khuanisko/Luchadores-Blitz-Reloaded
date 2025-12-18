@@ -44,6 +44,23 @@ func get_team_queue(is_player: bool) -> Array:
 func get_active_fighter(is_player: bool) -> SimUnit:
 	return _player_fighter if is_player else _enemy_fighter
 
+func apply_damage(target: SimUnit, amount: int, source: SimUnit) -> void:
+	_apply_damage(target, amount, source)
+
+func check_spawn(is_player: bool) -> SimUnit:
+	return _check_spawn(is_player)
+
+func handle_death(unit: SimUnit) -> void:
+	_handle_death(unit)
+
+func log_ability_trigger(trigger: BattleTypes.AbilityTrigger, source_id: int, ability_name: String) -> void:
+	_log({
+		"type": BattleTypes.EventType.ABILITY_TRIGGER,
+		"trigger": trigger,
+		"source": source_id,
+		"ability_name": ability_name
+	})
+
 func simulate(player_team: Array[UnitInstance], enemy_team: Array[UnitInstance]) -> BattleResult:
 	_reset()
 	
@@ -138,45 +155,27 @@ func simulate(player_team: Array[UnitInstance], enemy_team: Array[UnitInstance])
 	return result
 
 func _resolve_start_of_battle():
-	# David King Priority Opening Bell - check both managers
-	var player_has_dk = GameData.selected_manager and GameData.selected_manager.id == "david_king"
-	var enemy_has_dk = GameData.enemy_manager and GameData.enemy_manager.id == "david_king"
+	# Manager Start of Battle Abilities (Strategy Pattern)
+	var managers_to_act = []
 	
-	# Mirror match: randomize order
-	var player_first = true
-	if player_has_dk and enemy_has_dk:
-		player_first = randf() > 0.5
-	
-	# Execute David King abilities in order
-	var dk_order = []
-	if player_has_dk:
-		dk_order.append({"is_player": true, "target_queue": "_enemy_queue"})
-	if enemy_has_dk:
-		dk_order.append({"is_player": false, "target_queue": "_player_queue"})
-	
-	if not player_first:
-		dk_order.reverse()
-	
-	for dk in dk_order:
-		var target_queue = _enemy_queue if dk.is_player else _player_queue
-		var is_target_player = not dk.is_player
+	if GameData.selected_manager and GameData.selected_manager.ability_script:
+		managers_to_act.append({"manager": GameData.selected_manager, "is_player": true})
 		
-		if not target_queue.is_empty():
-			# First, spawn the target so it appears visually
-			_check_spawn(is_target_player)
-			
-			# Now get the active fighter (which we just spawned)
-			var target_fighter = _player_fighter if is_target_player else _enemy_fighter
-			if target_fighter:
-				_apply_damage(target_fighter, 2, null)
-				_log({
-					"type": BattleTypes.EventType.ABILITY_TRIGGER,
-					"trigger": BattleTypes.AbilityTrigger.START_OF_BATTLE,
-					"source": -1,
-					"ability_name": "David King Opening Bell"
-				})
-				if target_fighter.hp <= 0:
-					_handle_death(target_fighter)
+	if GameData.enemy_manager and GameData.enemy_manager.ability_script:
+		managers_to_act.append({"manager": GameData.enemy_manager, "is_player": false})
+	
+	# Randomize order if multiple managers have abilities (fairness for mirror matches)
+	if managers_to_act.size() > 1:
+		managers_to_act.shuffle()
+		
+	for entry in managers_to_act:
+		var mgr = entry.manager
+		# Safety check as requested
+		if mgr.ability_script:
+			# Instantiate the script
+			var ability = mgr.ability_script.new()
+			if ability.has_method("execute_start_of_battle"):
+				ability.execute_start_of_battle(self, entry.is_player)
 	
 	var triggers = []
 	
@@ -406,12 +405,12 @@ func summon_unit(definition: UnitDefinition, is_player: bool, level: int = 1) ->
 	instance.hp = instance.max_hp
 	instance.attack = definition.base_attack + stat_bonus
 	
-	# The Promotor Ability: Summoned units get +1/+1
+	# Manager Summon Abilities (Strategy Pattern)
 	var manager = GameData.selected_manager if is_player else GameData.enemy_manager
-	if manager and manager.id == "the_promotor":
-		instance.max_hp += 1
-		instance.hp += 1
-		instance.attack += 1
+	if manager and manager.ability_script:
+		var ability = manager.ability_script.new()
+		if ability.has_method("execute_on_summon"):
+			ability.execute_on_summon(instance, self)
 	
 	instance.unit_name = definition.unit_name
 	instance.level = level # Set level for new unit too (might affect its own abilities if it had any)

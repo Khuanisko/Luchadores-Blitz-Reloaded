@@ -14,8 +14,8 @@ extends Resource
 @export var tier: int = 1
 
 @export_group("Traits")
-@export var unit_class: String = "Luchador" # e.g. Striker, Technician
-@export var faction: String = "Independent"
+@export var unit_class: BattleTypes.UnitClass = BattleTypes.UnitClass.LUCHADOR
+@export var faction: BattleTypes.Faction = BattleTypes.Faction.INDEPENDENT
 @export_enum("Face", "Heel") var heel_face: String = "Face"
 
 @export_group("Ability")

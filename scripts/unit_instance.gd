@@ -37,10 +37,10 @@ var tier: int:
 	get: return definition.tier if definition else 1
 
 var unit_class: String:
-	get: return definition.unit_class if definition else "Unknown"
+	get: return BattleTypes.get_class_name(definition.unit_class) if definition else "Unknown"
 
 var faction: String:
-	get: return definition.faction if definition else "Unknown"
+	get: return BattleTypes.get_faction_name(definition.faction) if definition else "Unknown"
 
 var heel_face: String:
 	get: return definition.heel_face if definition else "Face"

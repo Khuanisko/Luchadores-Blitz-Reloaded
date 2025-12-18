@@ -8,4 +8,4 @@ id = "angry_fan"
 unit_name = "Angry Fan"
 cost = 0
 sell_value = 0
-unit_class = "Fan"
+unit_class = 6

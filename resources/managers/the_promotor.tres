@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="ManagerDefinition" load_steps=4 format=3 uid="uid://thepromotor"]
+[gd_resource type="Resource" script_class="ManagerDefinition" load_steps=5 format=3 uid="uid://thepromotor"]
 
-[ext_resource type="Texture2D" uid="uid://thepromotor_tex" path="res://assets/sprites/managers/thepromotor.png" id="1_tex"]
-[ext_resource type="Script" path="res://scripts/managers/manager_definition.gd" id="2_script"]
-[ext_resource type="Texture2D" path="res://assets/sprites/managers/managers_buttons/thepromotor.png" id="3_btn"]
+[ext_resource type="Script" uid="uid://x861qrqywm3p" path="res://resources/managers/abilities/ability_promotor.gd" id="1_7pmfp"]
+[ext_resource type="Texture2D" uid="uid://ovdscq3nh7b5" path="res://assets/sprites/managers/thepromotor.png" id="1_tex"]
+[ext_resource type="Script" uid="uid://c0hkfhbddxrut" path="res://scripts/managers/manager_definition.gd" id="2_script"]
+[ext_resource type="Texture2D" uid="uid://ds8xj3wosgwts" path="res://assets/sprites/managers/managers_buttons/thepromotor.png" id="3_btn"]
 
 [resource]
 script = ExtResource("2_script")
@@ -12,3 +13,4 @@ quote = "\"He turns rookies into superstars. It's all about the entrance!\""
 ability_description = "Whenever you summon a unit during fight, give it +1/+1"
 portrait = ExtResource("1_tex")
 button_icon = ExtResource("3_btn")
+ability_script = ExtResource("1_7pmfp")
