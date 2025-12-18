@@ -12,6 +12,7 @@ extends Control
 @onready var enemy_manager_icon: TextureRect = $UILayer/EnemyManagerIcon
 
 const FIGHTER_SCENE = preload("res://scenes/battle/fighter.tscn")
+const FLOATING_TEXT_SCENE = preload("res://scenes/vfx/floating_text.tscn")
 
 # Visualizer State
 var _active_fighters: Dictionary = {} # Maps unit_id (int) -> Node2D
@@ -179,12 +180,18 @@ func _handle_damage(event: Dictionary) -> void:
 	
 	var node = _active_fighters.get(target_id)
 	if node:
-		node.play_hit_anim()
+		node.play_hurt_visuals()
 		# Update visual stats
 		# Fighter node expects UnitInstance to hold values.
 		# We need to manually update the labels since we are driving this externally.
 		if node.hp_label:
 			node.hp_label.text = str(new_hp)
+		
+		# Spawn Floating Text
+		var float_txt = FLOATING_TEXT_SCENE.instantiate()
+		add_child(float_txt) # Add to Arena, not Unit
+		float_txt.global_position = node.global_position
+		float_txt.setup(amount, Color.RED)
 		
 		# Wait for hit impact
 		await get_tree().create_timer(0.2).timeout
