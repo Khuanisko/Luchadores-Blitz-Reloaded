@@ -67,24 +67,38 @@ func update_stats_display() -> void:
 func play_attack_anim(target_pos: Vector2) -> void:
 	var original_pos = sprite.position
 	var tween = create_tween()
-	# Lunge forward (assuming 'forward' depends on flip)
+	# Attack Animation (Refined)
 	var forward_dir = Vector2.LEFT if sprite.flip_h else Vector2.RIGHT
 	
-	tween.tween_property(sprite, "position", original_pos + (forward_dir * 50), 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(sprite, "position", original_pos, 0.2)
+	# Phase 1: Wind-up (Pull back slightly)
+	tween.tween_property(sprite, "position", original_pos - (forward_dir * 20), 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	
+	# Phase 2: Strike (Fast forward)
+	tween.chain().tween_property(sprite, "position", original_pos + (forward_dir * 60), 0.1).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	
+	# Phase 3: Return
+	tween.chain().tween_property(sprite, "position", original_pos, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 
-func play_hit_anim() -> void:
+func play_hurt_visuals() -> void:
 	var tween = create_tween()
-	tween.tween_property(sprite, "modulate", Color.RED, 0.1)
+	
+	# Flash White/Red (High impact)
+	sprite.modulate = Color(10, 10, 10) # Over-bright start
+	tween.tween_property(sprite, "modulate", Color.RED, 0.05)
 	tween.tween_property(sprite, "modulate", Color.WHITE, 0.1)
 	
 	# Shake
-	var original_pos = sprite.position
-	var shake_offset = Vector2(10, 0)
-	tween.parallel().tween_property(sprite, "position", original_pos + shake_offset, 0.05)
-	tween.chain().tween_property(sprite, "position", original_pos - shake_offset, 0.05)
-	tween.chain().tween_property(sprite, "position", original_pos, 0.05)
+	var original_pos = Vector2.ZERO # Usually local 0,0
+	if not tween.is_running(): tween = create_tween() # Ensure tween exists if parallel
+	
+	# Random shake
+	for i in range(5):
+		var offset = Vector2(randf_range(-3, 3), randf_range(-3, 3))
+		tween.parallel().tween_property(sprite, "position", original_pos + offset, 0.03)
+	
+	# Reset
+	tween.chain().tween_property(sprite, "position", original_pos, 0.01)
 
 
 func play_ability_vfx(color: Color = Color.GOLD) -> void:
