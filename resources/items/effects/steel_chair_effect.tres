@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="ItemEffectGrantAbility" load_steps=3 format=3 uid="uid://steel_chair_effect_res"]
+
+[ext_resource type="Script" path="res://scripts/items/effects/item_effect_grant_ability.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://entrance_damage_3" path="res://resources/abilities/entrance_damage_3.tres" id="2_ability"]
+
+[resource]
+script = ExtResource("1_script")
+granted_ability = ExtResource("2_ability")
+equipped_item_name = "Steel Chair"

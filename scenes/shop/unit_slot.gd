@@ -125,21 +125,36 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 		return false
 	
 	# Accept team units for swapping
-	if data is Dictionary and data.get("type") == "team_unit":
-		var source = data.get("source")
-		# Don't swap with self
-		if source != self:
-			var source_data = data.get("unit_data")
-			
-			# Highlight for swap
-			if background:
-				background.modulate = Color(1.3, 1.3, 1.3)
+	# Accept team units for swapping
+	if data is Dictionary:
+		var type = data.get("type")
+		
+		# Swapping Logic
+		if type == "team_unit":
+			var source = data.get("source")
+			# Don't swap with self
+			if source != self:
+				var source_data = data.get("unit_data")
 				
-				# Check for merge possibility (same unit name, same level, and not max level)
-				if unit_instance and source_data and unit_instance.unit_name == source_data.unit_name and unit_instance.level == source_data.level and unit_instance.level < 2:
-					background.modulate = Color(1.5, 1.5, 1.0) # Golden highlight for merge
+				# Highlight for swap
+				if background:
+					background.modulate = Color(1.3, 1.3, 1.3)
 					
-			return true
+					# Check for merge possibility (same unit name, same level, and not max level)
+					if unit_instance and source_data and unit_instance.unit_name == source_data.unit_name and unit_instance.level == source_data.level and unit_instance.level < 2:
+						background.modulate = Color(1.5, 1.5, 1.0) # Golden highlight for merge
+						
+				return true
+				
+		# Item Purchase Logic
+		if type == "shop_item":
+			var cost = data.get("cost", 999)
+			# Check affordance
+			if GameData.gold >= cost:
+				if background:
+					background.modulate = Color(1.2, 1.5, 1.2) # Greenish highlight
+				return true
+				
 	return false
 
 
@@ -172,7 +187,29 @@ func _drop_data(_at_position: Vector2, data: Variant) -> void:
 
 			# Swap Request if not merged
 			swap_requested.emit(source_slot, self)
-	_reset_visual()
+
+	# Handle Item Purchase
+	if data is Dictionary and data.get("type") == "shop_item":
+		var item: ItemDefinition = data.get("item")
+		var source_slot: Control = data.get("source")
+		var cost = data.get("cost", 0)
+		
+		if item and source_slot and GameData.gold >= cost:
+			# Execute item ability
+			if item.item_effect:
+				item.item_effect.execute(unit_instance)
+				print("Item used: ", item.name, " on ", unit_instance.unit_name)
+			
+			# Spend gold
+			GameData.spend_gold(cost)
+			
+			# Remove from shop
+			source_slot.remove_from_shop()
+			
+			# Visual update
+			_reset_visual()
+			if tooltip_instance and tooltip_instance.visible:
+				tooltip_instance.show_unit(unit_instance)
 
 
 func _notification(what: int) -> void:

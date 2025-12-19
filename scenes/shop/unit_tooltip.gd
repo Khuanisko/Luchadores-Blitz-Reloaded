@@ -20,6 +20,10 @@ extends PanelContainer
 @onready var ability_name_label: Label = $MarginContainer/VBoxContainer/AbilitySection/AbilityName
 @onready var ability_desc_label: RichTextLabel = $MarginContainer/VBoxContainer/AbilitySection/AbilityDesc
 
+
+@onready var equip_section: VBoxContainer = $MarginContainer/VBoxContainer/EquipSection
+@onready var equip_value: Label = $MarginContainer/VBoxContainer/EquipSection/EquipValue
+
 func show_unit(unit: UnitInstance) -> void:
 	if unit == null:
 		return
@@ -60,6 +64,16 @@ func show_unit(unit: UnitInstance) -> void:
 		ability_name_label.text = unit.ability_name
 	if ability_desc_label:
 		ability_desc_label.text = unit.ability_description
+
+	# Show Equipped Items
+	if equip_section:
+		if not unit.equipped_items.is_empty():
+			equip_section.visible = true
+			if equip_value:
+				# Join multiple items with comma if needed
+				equip_value.text = ", ".join(unit.equipped_items)
+		else:
+			equip_section.visible = false
 	
 	visible = true
 	

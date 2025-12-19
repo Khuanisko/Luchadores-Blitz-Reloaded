@@ -150,3 +150,22 @@ bbcode_enabled = true
 text = "Ability description goes here. It wraps to multiple lines if needed."
 fit_content = true
 scroll_active = false
+
+[node name="HSeparator4" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="EquipSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+
+[node name="EquipLabel" type="Label" parent="MarginContainer/VBoxContainer/EquipSection"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 12
+text = "Equipped Item:"
+
+[node name="EquipValue" type="Label" parent="MarginContainer/VBoxContainer/EquipSection"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 14
+text = "Steel Chair"
