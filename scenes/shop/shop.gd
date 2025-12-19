@@ -4,6 +4,7 @@
 extends Control
 
 const UNIT_SLOT_SCENE = preload("res://scenes/shop/unit_slot.tscn")
+const ITEM_SLOT_SCENE = preload("res://scenes/shop/item_slot.tscn")
 const MANAGER_TOOLTIP_SCENE = preload("res://scenes/managers/manager_tooltip.tscn")
 
 # Currency
@@ -14,10 +15,13 @@ const REROLL_COST: int = 1
 
 # Shop Data
 @export var available_units_pool: Array[UnitDefinition] = []
+@export var available_items_pool: Array[ItemDefinition] = []
 var shop_units: Array[UnitInstance] = []
+var shop_items: Array[ItemDefinition] = []
 var previous_gold: int = 1000
 
 @onready var shop_container: HBoxContainer = $ShopContainer
+@onready var item_container: HBoxContainer = $ItemContainer
 @onready var shopkeeper: Control = $Shopkeeper
 @onready var reroll_button: Button = $RerollButton
 @onready var fight_button: Button = $FightButton
@@ -35,6 +39,7 @@ func _ready() -> void:
 	GameData.reset_gold()
 	previous_gold = GameData.gold
 	_ensure_pool_loaded()
+	_ensure_item_pool_loaded()
 	_generate_shop_items()
 	_populate_shop_ui()
 	_restore_team()
@@ -58,6 +63,16 @@ func _ensure_pool_loaded() -> void:
 		if ResourceLoader.exists(path):
 			available_units_pool.append(load(path))
 
+func _ensure_item_pool_loaded() -> void:
+	if not available_items_pool.is_empty():
+		return
+	
+	var item_ids = ["burrito", "steel_chair", "jalapeno"]
+	for id in item_ids:
+		var path = "res://resources/items/" + id + ".tres"
+		if ResourceLoader.exists(path):
+			available_items_pool.append(load(path))
+
 
 func _restore_team() -> void:
 	if GameData.player_team.is_empty():
@@ -67,6 +82,10 @@ func _restore_team() -> void:
 		for unit in GameData.player_team:
 			# Fully heal unit before adding back to board
 			unit.hp = unit.max_hp
+			
+			# Clear temporary abilities (from items)
+			unit.clear_temporary_abilities()
+			
 			team_board.add_unit(unit)
 			unit.connect_shop_signals()
 
@@ -83,6 +102,16 @@ func _generate_shop_items() -> void:
 		var unit = UnitInstance.new(def)
 		shop_units.append(unit)
 
+	# Generate Items (Max 2)
+	shop_items.clear()
+	if not available_items_pool.is_empty():
+		for i in range(2):
+			# 50% chance to spawn an item? Or always max 2?
+			# Requirements: "Itemy beda pojawiac sie w sklepie na drugiej polce (...) maksymalnie 2 itemy"
+			# Let's say always 2 for now to make testing easier, or randomly 1-2.
+			var item = available_items_pool.pick_random()
+			shop_items.append(item)
+
 
 func _populate_shop_ui() -> void:
 	# Clear existing slots
@@ -93,6 +122,16 @@ func _populate_shop_ui() -> void:
 		var slot = UNIT_SLOT_SCENE.instantiate()
 		shop_container.add_child(slot)
 		slot.setup(unit_instance)
+
+	# Populate Items
+	if item_container:
+		for child in item_container.get_children():
+			child.queue_free()
+			
+		for item_def in shop_items:
+			var slot = ITEM_SLOT_SCENE.instantiate()
+			item_container.add_child(slot)
+			slot.setup(item_def)
 
 
 func _connect_signals() -> void:

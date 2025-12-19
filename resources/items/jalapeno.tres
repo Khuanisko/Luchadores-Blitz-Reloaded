@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=4 format=3 uid="uid://jalapeno_item_res"]
+
+[ext_resource type="Script" path="res://scripts/items/item_definition.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/sprites/items/jalapeno.png" id="2_icon"]
+[ext_resource type="Resource" uid="uid://jalapeno_effect_res" path="res://resources/items/effects/jalapeno_effect.tres" id="3_effect"]
+
+[resource]
+script = ExtResource("1_script")
+id = "jalapeno"
+name = "Jalapeno"
+description = "Give unit +2 Attack permanently"
+cost = 3
+tier = 1
+icon = ExtResource("2_icon")
+item_effect = ExtResource("3_effect")

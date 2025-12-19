@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="ItemEffectStats" load_steps=2 format=3 uid="uid://burrito_effect_res"]
+
+[ext_resource type="Script" path="res://scripts/items/effects/item_effect_stats.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+hp_bonus = 2
+attack_bonus = 0

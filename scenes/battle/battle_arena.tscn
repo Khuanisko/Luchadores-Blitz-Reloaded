@@ -1,10 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://battle_arena_scene"]
+[gd_scene load_steps=6 format=3 uid="uid://cdq61k0xqdivo"]
 
-[ext_resource type="Script" path="res://scenes/battle/battle_arena.gd" id="1_battle"]
-[ext_resource type="Texture2D" path="res://assets/sprites/rings/Backyard.png" id="2_bg"]
-[ext_resource type="Texture2D" path="res://assets/sprites/shop/heart.png" id="3_heart"]
-[ext_resource type="Texture2D" path="res://assets/sprites/shop/wins.png" id="4_wins"]
-[ext_resource type="Texture2D" path="res://assets/sprites/shop/round.png" id="5_round"]
+[ext_resource type="Script" uid="uid://b8pq6benrodyp" path="res://scenes/battle/battle_arena.gd" id="1_battle"]
+[ext_resource type="Texture2D" uid="uid://c1qovewrsdukl" path="res://assets/sprites/rings/Backyard.png" id="2_bg"]
+[ext_resource type="Texture2D" uid="uid://d1ny1p562cb36" path="res://assets/sprites/shop/heart.png" id="3_heart"]
+[ext_resource type="Texture2D" uid="uid://jr6rmof3x4ev" path="res://assets/sprites/shop/wins.png" id="4_wins"]
+[ext_resource type="Texture2D" uid="uid://otbhaswxrx4s" path="res://assets/sprites/shop/round.png" id="5_round"]
 
 [node name="BattleArena" type="Control"]
 layout_mode = 3
@@ -73,6 +73,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="HUD" type="Control" parent="UILayer"]
+layout_mode = 3
 anchors_preset = 0
 offset_left = 20.0
 offset_top = 20.0
@@ -80,17 +81,20 @@ offset_right = 300.0
 offset_bottom = 120.0
 
 [node name="HPContainer" type="HBoxContainer" parent="UILayer/HUD"]
+layout_mode = 0
 offset_right = 150.0
 offset_bottom = 40.0
 
 [node name="HeartIcon" type="TextureRect" parent="UILayer/HUD/HPContainer"]
 custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
 texture = ExtResource("3_heart")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="HPLabel" type="Label" parent="UILayer/HUD/HPContainer"]
 custom_minimum_size = Vector2(50, 40)
+layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
@@ -99,18 +103,21 @@ text = "3"
 vertical_alignment = 1
 
 [node name="WinsContainer" type="HBoxContainer" parent="UILayer/HUD"]
+layout_mode = 0
 offset_left = 120.0
 offset_right = 270.0
 offset_bottom = 40.0
 
 [node name="WinsIcon" type="TextureRect" parent="UILayer/HUD/WinsContainer"]
 custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
 texture = ExtResource("4_wins")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="WinsLabel" type="Label" parent="UILayer/HUD/WinsContainer"]
 custom_minimum_size = Vector2(50, 40)
+layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
@@ -119,18 +126,21 @@ text = "0"
 vertical_alignment = 1
 
 [node name="RoundContainer" type="HBoxContainer" parent="UILayer/HUD"]
+layout_mode = 0
 offset_top = 50.0
 offset_right = 150.0
 offset_bottom = 90.0
 
 [node name="RoundIcon" type="TextureRect" parent="UILayer/HUD/RoundContainer"]
 custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
 texture = ExtResource("5_round")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="RoundLabel" type="Label" parent="UILayer/HUD/RoundContainer"]
 custom_minimum_size = Vector2(50, 40)
+layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
@@ -169,4 +179,3 @@ offset_bottom = 164.0
 grow_horizontal = 0
 expand_mode = 1
 stretch_mode = 5
-

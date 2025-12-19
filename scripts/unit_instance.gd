@@ -11,6 +11,10 @@ extends Resource
 @export var xp: int = 0
 @export var max_xp: int = 2
 
+# Temporary Abilities (Items)
+var temporary_abilities: Array[Resource] = []
+var equipped_items: Array[String] = []
+
 # Helper to get tier name
 const TIER_NAMES = {
 	1: "Backyard",
@@ -68,6 +72,13 @@ var ability_description: String:
 			# Try to replace "[b] X [/b]" or just "X"
 			return desc.replace("[b] " + str(base_val) + " [/b]", "[b] " + str(current_val) + " [/b]") \
 				.replace(str(base_val), str(current_val))
+		
+		# Append Item descriptions
+		if not temporary_abilities.is_empty():
+			desc += "\n[color=yellow]Items:[/color]"
+			for ab in temporary_abilities:
+				if ab.has_method("get_description"):
+					desc += "\n" + ab.get_description(1, "Item Ability") # Items usually level 1?
 				
 		return desc
 
@@ -103,6 +114,18 @@ func level_up() -> void:
 	attack += 1
 
 
+func add_temporary_ability(ability: Resource) -> void:
+	if ability and not ability in temporary_abilities:
+		temporary_abilities.append(ability)
+
+func add_equipped_item(item_name: String) -> void:
+	equipped_items.append(item_name)
+
+func clear_temporary_abilities() -> void:
+	temporary_abilities.clear()
+	equipped_items.clear()
+
+
 # --- Ability System (Shop Phase) ---
 
 func connect_shop_signals() -> void:
@@ -132,4 +155,3 @@ func _on_gold_earned(_amount: int) -> void:
 		if definition.ability_resource.has_method("execute"):
 			var context = { "trigger": "gold_earned", "amount": _amount }
 			definition.ability_resource.execute(self, context)
-

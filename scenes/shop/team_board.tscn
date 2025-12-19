@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://di82hc0bhc3hq" path="res://assets/sprites/shop/rope.png" id="2_rope"]
 [ext_resource type="Texture2D" uid="uid://b8ncmv1aor364" path="res://assets/sprites/shop/team_board.png" id="3_board"]
 [ext_resource type="PackedScene" path="res://scenes/shop/sell_zone.tscn" id="4_sellzone"]
+[ext_resource type="Script" path="res://scenes/shop/rope_button.gd" id="5_rope_script"]
 
 [node name="TeamBoard" type="Control"]
 layout_mode = 3
@@ -28,6 +29,7 @@ grow_horizontal = 2
 texture_normal = ExtResource("2_rope")
 ignore_texture_size = true
 stretch_mode = 5
+script = ExtResource("5_rope_script")
 
 [node name="Board" type="Control" parent="."]
 layout_mode = 1

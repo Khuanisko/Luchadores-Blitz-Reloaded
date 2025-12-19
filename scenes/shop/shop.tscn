@@ -171,6 +171,18 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 4
 
+[node name="ItemContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.48
+anchor_right = 0.82
+anchor_bottom = 0.64
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 50
+alignment = 1
+
 [node name="RerollButton" type="Button" parent="."]
 layout_mode = 1
 anchors_preset = -1

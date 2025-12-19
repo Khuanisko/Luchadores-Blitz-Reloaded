@@ -376,6 +376,7 @@ func _try_ability(trigger: BattleTypes.AbilityTrigger, source: SimUnit, target: 
 	
 		# 1. Execute Script-Based Ability (Resource)
 	if definition and definition.ability_resource:
+		# ... (Existing native ability execution)
 		var context = {
 			"trigger": trigger,
 			"simulator": self,
@@ -383,11 +384,23 @@ func _try_ability(trigger: BattleTypes.AbilityTrigger, source: SimUnit, target: 
 			"target_sim_unit": target,
 			"ability_log": ability_log
 		}
-		# Capture success from the resource execution
 		if definition.ability_resource.execute(source.original_data, context):
-			# _log(ability_log) # Removed to avoid double logging
-			success = true # Mark as success for this function scope too
-			
+			success = true
+
+	# 2. Execute Temporary Abilities (from Items)
+	if source.original_data and not source.original_data.temporary_abilities.is_empty():
+		for temp_ability in source.original_data.temporary_abilities:
+			var context = {
+				"trigger": trigger,
+				"simulator": self,
+				"source_sim_unit": source,
+				"target_sim_unit": target, 
+				"ability_log": ability_log
+			}
+			# Note: We share the same ability log entry type, maybe we should differentiate?
+			# For now, if any succeed, we log the trigger event
+			if temp_ability.execute(source.original_data, context):
+				success = true
 	
 	if success:
 		_log(ability_log)
@@ -435,6 +448,9 @@ func summon_unit(definition: UnitDefinition, is_player: bool, level: int = 1) ->
 	# So appending here puts it at the front of the line. Correct.
 
 func _calculate_ability_trigger_potential(unit: SimUnit, trigger: BattleTypes.AbilityTrigger) -> bool:
-	if not unit.definition or not unit.definition.ability_resource:
+	var has_native = unit.definition and unit.definition.ability_resource
+	var has_temp = unit.original_data and not unit.original_data.temporary_abilities.is_empty()
+	
+	if not has_native and not has_temp:
 		return false
 	return true
