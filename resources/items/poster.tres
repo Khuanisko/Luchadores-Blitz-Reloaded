@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=5 format=3 uid="uid://b7pc4wq3reufj"]
+
+[ext_resource type="Script" uid="uid://c5nyogdh1ilt8" path="res://scripts/items/item_definition.gd" id="1_def"]
+[ext_resource type="Script" uid="uid://xdvkqpp8payo" path="res://scripts/items/effects/item_effect_poster.gd" id="2_eff"]
+[ext_resource type="Texture2D" uid="uid://cmrapu8y33gyx" path="res://assets/sprites/items/poster.png" id="3_icon"]
+
+[sub_resource type="Resource" id="Resource_poster_eff"]
+script = ExtResource("2_eff")
+
+[resource]
+script = ExtResource("1_def")
+id = "poster"
+name = "Poster"
+description = "On Buy: Reroll the shop. The next unit you buy gets +1/+1."
+icon = ExtResource("3_icon")
+item_effect = SubResource("Resource_poster_eff")
