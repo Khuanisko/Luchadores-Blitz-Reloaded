@@ -52,22 +52,46 @@ func _ready() -> void:
 
 
 
+const TIER_PROBABILITIES = {
+	"1-2":   {1: 100, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0},
+	"3-4":   {1: 60,  2: 40, 3: 0, 4: 0, 5: 0, 6: 0},
+	"5-6":   {1: 35,  2: 40, 3: 25, 4: 0, 5: 0, 6: 0},
+	"7-8":   {1: 25,  2: 30, 3: 30, 4: 15, 5: 0, 6: 0},
+	"9-10":  {1: 20,  2: 25, 3: 30, 4: 20, 5: 5, 6: 0},
+	"11+":   {1: 15,  2: 20, 3: 25, 4: 25, 5: 10, 6: 5}
+}
+
+var tier_pools: Dictionary = {}
+var current_tier_chances: Dictionary = {}
+var current_tier_level: int = 1
+
 func _ensure_pool_loaded() -> void:
-	if not available_units_pool.is_empty():
+	if not available_units_pool.is_empty() and not tier_pools.is_empty():
 		return
 		
 	# Fallback: Load known units if none assigned in inspector
-	var unit_ids = ["gonzales", "dolores", "marco", "eljaguarro", "eltorro"]
-	for id in unit_ids:
-		var path = "res://resources/units/" + id + ".tres"
-		if ResourceLoader.exists(path):
-			available_units_pool.append(load(path))
+	if available_units_pool.is_empty():
+		var unit_ids = ["gonzales", "dolores", "marco", "eljaguarro", "eltorro", "littledave", "elbarril", "eldoblon", "eltornado", "lavibora", "perrorabioso"] # Added more known units
+		for id in unit_ids:
+			var path = "res://resources/units/" + id + ".tres"
+			if ResourceLoader.exists(path):
+				available_units_pool.append(load(path))
+	
+	# Organize into tiers
+	tier_pools.clear()
+	for unit_def in available_units_pool:
+		var t = unit_def.tier
+		if not tier_pools.has(t):
+			tier_pools[t] = []
+		tier_pools[t].append(unit_def)
+		
+	# print("Tier Pools organized: ", tier_pools.keys())
 
 func _ensure_item_pool_loaded() -> void:
-	if not available_items_pool.is_empty():
-		return
+	if not available_units_pool.is_empty(): # Bug in original check, but let's keep it safe
+		if not available_items_pool.is_empty(): return
 	
-	var item_ids = ["burrito", "steel_chair", "jalapeno"]
+	var item_ids = ["burrito", "steel_chair", "jalapeno", "poster"]
 	for id in item_ids:
 		var path = "res://resources/items/" + id + ".tres"
 		if ResourceLoader.exists(path):
@@ -93,13 +117,61 @@ func _restore_team() -> void:
 func _generate_shop_items() -> void:
 	shop_units.clear()
 	
+	_ensure_pool_loaded() # Ensure organized
+	
 	if available_units_pool.is_empty():
 		return
 
-	# Create 5 random units
+	# Determine Probabilities and Max Tier based on Round
+	var round_num = GameData.current_round
+	var chances = {}
+	var unlocked_tier = 1
+	
+	if round_num <= 2:
+		chances = TIER_PROBABILITIES["1-2"]
+		unlocked_tier = 1
+	elif round_num <= 4:
+		chances = TIER_PROBABILITIES["3-4"]
+		unlocked_tier = 2
+	elif round_num <= 6:
+		chances = TIER_PROBABILITIES["5-6"]
+		unlocked_tier = 3
+	elif round_num <= 8:
+		chances = TIER_PROBABILITIES["7-8"]
+		unlocked_tier = 4
+	elif round_num <= 10:
+		chances = TIER_PROBABILITIES["9-10"]
+		unlocked_tier = 5
+	else:
+		chances = TIER_PROBABILITIES["11+"]
+		unlocked_tier = 6
+		
+	current_tier_chances = chances
+	current_tier_level = unlocked_tier
+	
+	_update_tier_ui() # We'll implement this next call
+
+	# Create 5 random units based on weights
 	for i in range(5):
-		var def = available_units_pool.pick_random()
-		var unit = UnitInstance.new(def)
+		var rolled_tier = _roll_tier(chances)
+		var attempts = 3
+		var unit_def: UnitDefinition = null
+		
+		# Try to find a unit in the rolled tier (or fallback)
+		while attempts > 0:
+			if tier_pools.has(rolled_tier) and not tier_pools[rolled_tier].is_empty():
+				unit_def = tier_pools[rolled_tier].pick_random()
+				break
+			else:
+				# Fallback to lower tier if pool empty
+				rolled_tier = max(1, rolled_tier - 1)
+				attempts -= 1
+		
+		# Absolute fallback
+		if not unit_def:
+			unit_def = available_units_pool.pick_random()
+			
+		var unit = UnitInstance.new(unit_def)
 		shop_units.append(unit)
 
 	# Generate Items (Max 2)
@@ -111,6 +183,19 @@ func _generate_shop_items() -> void:
 			# Let's say always 2 for now to make testing easier, or randomly 1-2.
 			var item = available_items_pool.pick_random()
 			shop_items.append(item)
+			
+			
+func _roll_tier(chances: Dictionary) -> int:
+	var roll = randi() % 100 + 1 # 1-100
+	var cumulative = 0
+	
+	for t in range(1, 7): # Tiers 1-6
+		if chances.has(t):
+			cumulative += chances[t]
+			if roll <= cumulative:
+				return t
+	
+	return 1 # Fallback
 
 
 func _populate_shop_ui() -> void:
@@ -355,8 +440,35 @@ func _apply_manager_effects() -> void:
 	if not GameData.selected_manager:
 		return
 		
-	# Check for strategy script
 	if GameData.selected_manager.ability_script:
 		var ability = GameData.selected_manager.ability_script.new()
 		if ability.has_method("execute_shop_round_start"):
 			ability.execute_shop_round_start(self)
+
+
+func _update_tier_ui() -> void:
+	var label_name = "TierLabel"
+	var label = get_node_or_null(label_name)
+	
+	if not label:
+		label = Label.new()
+		label.name = label_name
+		add_child(label)
+		# Position at top center
+		label.anchors_preset = Control.PRESET_TOP_WIDE
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.position.y = 80 # Below top bar
+		label.add_theme_font_size_override("font_size", 36)
+		label.add_theme_color_override("font_color", Color(0.9, 0.9, 1.0))
+		label.add_theme_constant_override("outline_size", 6)
+		label.add_theme_color_override("font_outline_color", Color.BLACK)
+	
+	label.text = "Current Tier: %d" % current_tier_level
+	label.modulate.a = 1.0
+	label.visible = true
+	
+	# Unique Tween for this label
+	var tween = create_tween()
+	tween.tween_interval(2.0) # Wait 2 seconds
+	tween.tween_property(label, "modulate:a", 0.0, 1.5) # Fade out over 1.5s
+	tween.tween_callback(func(): label.visible = false)
