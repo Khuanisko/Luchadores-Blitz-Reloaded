@@ -145,6 +145,9 @@ func _connect_signals() -> void:
 		team_board.unit_sold.connect(_on_unit_sold)
 	
 	GameData.gold_changed.connect(_on_gold_changed)
+	
+	if not GameData.reroll_shop_requested.is_connected(_reroll_shop):
+		GameData.reroll_shop_requested.connect(_reroll_shop)
 
 
 func _on_unit_purchased(unit: UnitInstance, source_slot: Control) -> void:
@@ -168,6 +171,16 @@ func _on_unit_purchased(unit: UnitInstance, source_slot: Control) -> void:
 		
 		# Connect triggers for the new team member
 		unit.connect_shop_signals()
+		
+		# Apply "Poster" buff if active
+		if GameData.next_purchase_stats.hp > 0 or GameData.next_purchase_stats.attack > 0:
+			unit.max_hp += GameData.next_purchase_stats.hp
+			unit.hp += GameData.next_purchase_stats.hp
+			unit.attack += GameData.next_purchase_stats.attack
+			print("Poster Buff Applied: +%d HP, +%d Attack" % [GameData.next_purchase_stats.hp, GameData.next_purchase_stats.attack])
+			
+			# Reset buff
+			GameData.next_purchase_stats = { "hp": 0, "attack": 0 }
 		
 		# Notify potential listeners (other team members)
 		GameData.unit_purchased.emit(unit)

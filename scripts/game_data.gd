@@ -19,6 +19,9 @@ var gold: int = STARTING_GOLD
 signal gold_changed(new_amount: int)
 signal gold_earned(amount: int)
 signal unit_purchased(unit: UnitInstance)
+signal reroll_shop_requested
+
+var next_purchase_stats: Dictionary = { "hp": 0, "attack": 0 }
 
 func gain_gold(amount: int) -> void:
 	if amount <= 0: return
