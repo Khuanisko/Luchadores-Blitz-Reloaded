@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://df50slakhs8gj"]
+[gd_scene load_steps=26 format=3 uid="uid://df50slakhs8gj"]
 
 [ext_resource type="Script" uid="uid://1hf3up5viqj6" path="res://scenes/shop/shop.gd" id="1_main"]
 [ext_resource type="Texture2D" uid="uid://dnqr7hx8undly" path="res://assets/sprites/shop/shop.png" id="2_shopbg"]
@@ -19,9 +19,11 @@
 [ext_resource type="Resource" uid="uid://46bb3wf4u04e" path="res://resources/units/littledave.tres" id="11_bnu54"]
 [ext_resource type="Resource" uid="uid://c7t45y0n1g7d" path="res://resources/units/perrorabioso.tres" id="12_noimi"]
 [ext_resource type="Script" uid="uid://c5nyogdh1ilt8" path="res://scripts/items/item_definition.gd" id="13_5y7fm"]
+[ext_resource type="Resource" path="res://resources/units/eltorro.tres" id="13_f8gqx"]
 [ext_resource type="Resource" uid="uid://djelsq1gryvj6" path="res://resources/items/burrito.tres" id="14_toxgp"]
+[ext_resource type="Resource" uid="uid://bu71gtcvmnrpk" path="res://resources/units/eljaguarro.tres" id="14_wjgtv"]
 [ext_resource type="Resource" path="res://resources/items/jalapeno.tres" id="15_bnu54"]
-[ext_resource type="Resource" path="res://resources/items/poster.tres" id="16_noimi"]
+[ext_resource type="Resource" uid="uid://b7pc4wq3reufj" path="res://resources/items/poster.tres" id="16_noimi"]
 [ext_resource type="Resource" uid="uid://bxbonxf4rtb52" path="res://resources/items/steel_chair.tres" id="17_f8gqx"]
 
 [node name="Shop" type="Control"]
@@ -32,7 +34,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_main")
-available_units_pool = Array[ExtResource("2_tp26b")]([ExtResource("4_131kw"), ExtResource("7_6kbe7"), ExtResource("8_hbyua"), ExtResource("6_hbyua"), ExtResource("7_36j3v"), ExtResource("8_5y7fm"), ExtResource("9_toxgp"), ExtResource("10_u2jek"), ExtResource("11_bnu54"), ExtResource("12_noimi")])
+available_units_pool = Array[ExtResource("2_tp26b")]([ExtResource("4_131kw"), ExtResource("7_6kbe7"), ExtResource("8_hbyua"), ExtResource("6_hbyua"), ExtResource("7_36j3v"), ExtResource("8_5y7fm"), ExtResource("9_toxgp"), ExtResource("10_u2jek"), ExtResource("11_bnu54"), ExtResource("12_noimi"), ExtResource("13_f8gqx"), ExtResource("14_wjgtv")])
 available_items_pool = Array[ExtResource("13_5y7fm")]([ExtResource("14_toxgp"), ExtResource("15_bnu54"), ExtResource("16_noimi"), ExtResource("17_f8gqx")])
 
 [node name="Background" type="TextureRect" parent="."]
